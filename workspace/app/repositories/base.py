@@ -1,9 +1,8 @@
 from typing import Type
 
 from pydantic import BaseModel
-from sqlalchemy import insert, select
+from sqlalchemy import delete, insert, select
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 
 from app.db import Base
 from app.repositories.mappers.base import DataMapper
@@ -80,7 +79,6 @@ class BaseRepository:
         Returns:
             Base: Созданный ORM-объект.
         """
-        "sqlalchemy.exc.IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: en_oggs.name"
         stmt = (
             insert(self.model)
             .values(**data.model_dump())
@@ -91,3 +89,7 @@ class BaseRepository:
         res = result.scalars().one_or_none()
         if res:
             return self.mapper.map_to_domain_entity(res)
+
+    def delete(self, **kwargs):
+        query = delete(self.model).filter_by(**kwargs)
+        self.session.execute(query)

@@ -23,8 +23,17 @@ def add_ogg(db: DBManager, data: OggAdd):
 
     result = db.oggs.add(data)
     print(f"{result = }")
+    # db.commit()
+
+
+@inject_db
+def delete_ogg(db: DBManager, id: int):
+    db.oggs.delete(id=id)
     db.commit()
 
-    # with SESSION_MAKER() as session:
-    #     result = OggsRepository(session).add(data)
-    #     session.commit()
+
+@inject_db
+def delete_all_oggs(db: DBManager):
+    all_oggs = db.oggs.get_all()
+    for ogg in all_oggs:
+        delete_ogg(id=ogg.id)

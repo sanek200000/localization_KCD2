@@ -18,38 +18,51 @@ DB_WITH_FILES_PATHES = TEMP_PATH.joinpath("/db_with_pathes.bin").resolve()
 
 def list_all_oggs(folder: Path = EN_VOICE_OGG_PATH):
     """
-    Рекурсивно собирает список всех OGG-файлов в указанной директории
-    и сохраняет результат в бинарный файл.
+    Выполняет рекурсивный поиск OGG-файлов, формирует записи для базы
+    данных и сохраняет индекс найденных файлов.
 
-    Функция обходит каталог `folder`, находит все файлы с расширением
-    ``.ogg`` и формирует словарь, где ключом является имя файла без
-    расширения, а значением — полный путь к файлу.
+    Для каждого найденного файла:
 
-    После завершения обхода словарь сериализуется и сохраняется
-    в файл внутри директории `TEMP_PATH`. Также в текстовый лог
-    записывается количество найденных файлов.
+    - Проверяет уникальность имени файла без расширения.
+    - Вычисляет связанные пути к WAV- и русскоязычным OGG-файлам.
+    - Создает объект `OggAdd`.
+    - Добавляет запись в базу данных через функцию `add_ogg`.
+    - Добавляет информацию о файле в локальный индекс.
+
+    После завершения обработки индекс сохраняется в бинарном и JSON
+    форматах, а также записывается статистика по количеству найденных
+    файлов.
 
     Args:
-        folder (Path, optional): Корневая директория для поиска OGG-файлов.
+        folder (Path, optional): Каталог, в котором выполняется
+            рекурсивный поиск файлов с расширением ``.ogg``.
             По умолчанию используется `EN_VOICE_OGG_PATH`.
 
     Returns:
         None
 
     Side Effects:
-        - Удаляет существующий файл результата перед созданием нового.
         - Выполняет рекурсивный обход файловой системы.
-        - Сохраняет словарь путей через функцию `append_marshal`.
-        - Добавляет запись в файл статистики через функцию `append_txt`.
-        - Выводит сообщение об ошибке при обнаружении дублирующихся имен файлов.
+        - Создает записи в базе данных.
+        - Создает или перезаписывает файлы индекса.
+        - Создает JSON-представление индекса.
+        - Записывает статистику в файл `counts.txt`.
+        - Выводит сообщения об ошибках в консоль.
+
+    Raises:
+        Любые исключения, возникающие при работе с файловой системой,
+        базой данных или сериализацией, не перехватываются и
+        пробрасываются вызывающему коду.
 
     Notes:
-        - Ключом словаря используется только имя файла (`Path.stem`).
-          Если в разных подкаталогах встречаются файлы с одинаковыми
-          именами, функция завершает обработку после вывода сообщения
-          об ошибке.
+        - В качестве идентификатора используется имя файла без
+          расширения (`Path.stem`).
+        - Значение поля `hash` формируется из последних 15 символов
+          имени файла.
+        - При обнаружении дублирующегося имени файла обработка
+          прерывается.
         - При включенном режиме DEBUG обрабатываются только первые
-          10 найденных файлов.
+          12 найденных файлов.
     """
     DEBUG = 1
     save_file_path = TEMP_PATH.joinpath(f"list_oggs_from__{folder.name}.bin")
@@ -69,8 +82,16 @@ def list_all_oggs(folder: Path = EN_VOICE_OGG_PATH):
 
         data[ogg_stem] = str(ogg)
 
-        row = OggAdd(hash=ogg_stem[-15:], name=ogg_stem, path=str(ogg))
-        add_ogg(row)
+        wav_en_path, ogg_ru_path, wav_ru_path = replace_ogg_path(str(ogg))
+        row = OggAdd(
+            hash=ogg_stem[-15:],
+            name=ogg_stem,
+            ogg_en_path=str(ogg),
+            wav_en_path=wav_en_path,
+            ogg_ru_path=ogg_ru_path,
+            wav_ru_path=wav_ru_path,
+        )
+        add_ogg(data=row)
 
     append_marshal(save_file_path, data)
     append_json(save_file_path.with_suffix(".json"), data)
@@ -135,43 +156,90 @@ def reverse_index_for_sub():
     append_marshal(REVERSE_INDEX_FOR_SUB, stem_to_key)
 
 
-def add_entry_to_subs_dict(data: dict, key: str, ogg_path: str):
+def replace_ogg_path(ogg_path) -> tuple[str, str, str]:
     """
-    Дополняет запись в словаре SUBS_DICT путями к аудиофайлам (OGG/WAV)
-    для английской и русской локализаций.
+    Формирует связанные пути для WAV-версии исходного аудио и
+    русскоязычных аудиофайлов на основе пути к английскому OGG-файлу.
 
-    Функция модифицирует существующую запись в словаре `data`, добавляя
-    производные пути к аудиофайлам на основе входного пути OGG.
-
-    Формируемые поля:
-        - ogg_en_path: исходный английский OGG-путь
-        - wav_en_path: соответствующий WAV-путь (en_voice_ogg → en_voice_wav)
-        - ogg_ru_path: русская версия OGG-пути (en_voice_ogg → ru_voice_ogg)
-        - wav_ru_path: русская WAV-версия (en_voice_ogg → ru_voice_wav)
+    Выполняет замену каталогов в исходном пути и при необходимости
+    изменяет расширение файла на ``.wav``.
 
     Args:
-        data: Словарь субтитров/записей, содержащий ключ `key`.
-        key: Ключ записи, которую необходимо дополнить.
-        ogg_path: Путь к английскому OGG-файлу.
+        ogg_path (str): Путь к английскому OGG-файлу, расположенному
+            в каталоге `en_voice_ogg`.
 
     Returns:
-        None.
+        tuple[str, str, str]:
+            Кортеж из трех путей:
+
+            - `wav_en_path` — путь к английскому WAV-файлу;
+            - `ogg_ru_path` — путь к русскому OGG-файлу;
+            - `wav_ru_path` — путь к русскому WAV-файлу.
+
+    Examples:
+        >>> replace_ogg_path(
+        ...     "/data/en_voice_ogg/dialog/test_123.ogg"
+        ... )
+        (
+            "/data/en_voice_wav/dialog/test_123.wav",
+            "/data/ru_voice_ogg/dialog/test_123.ogg",
+            "/data/ru_voice_wav/dialog/test_123.wav"
+        )
 
     Notes:
-        - Функция предполагает строго заданную структуру путей проекта.
-        - Все преобразования путей основаны на строковой замене,
-          поэтому чувствительны к формату исходного пути.
-        - Используется pathlib.Path только для преобразования расширения WAV.
+        Функция предполагает, что входной путь содержит подстроку
+        `"en_voice_ogg"`. Если структура каталогов отличается,
+        результат может быть некорректным.
     """
-    sub_entry = data.get(key)
-    sub_entry["ogg_en_path"] = ogg_path
-    sub_entry["wav_en_path"] = str(
+    wav_en_path = str(
         Path(ogg_path.replace("en_voice_ogg", "en_voice_wav")).with_suffix(".wav")
     )
-    sub_entry["ogg_ru_path"] = ogg_path.replace("en_voice_ogg", "ru_voice_ogg")
-    sub_entry["wav_ru_path"] = str(
+    ogg_ru_path = ogg_path.replace("en_voice_ogg", "ru_voice_ogg")
+    wav_ru_path = str(
         Path(ogg_path.replace("en_voice_ogg", "ru_voice_wav")).with_suffix(".wav")
     )
+    return wav_en_path, ogg_ru_path, wav_ru_path
+
+
+def add_entry_to_subs_dict(data: dict, key: str, ogg_path: str):
+    """
+    Дополняет существующую запись словаря путями к аудиофайлам.
+
+    Для указанного ключа извлекает запись из словаря `data` и, если
+    она существует, добавляет в нее пути к английским и русским
+    аудиофайлам в форматах OGG и WAV.
+
+    Пути формируются на основе исходного пути к английскому OGG-файлу
+    с помощью функции `replace_ogg_path`.
+
+    Args:
+        data (dict): Словарь с данными субтитров или аудиозаписей.
+        key (str): Ключ записи, которую необходимо дополнить.
+        ogg_path (str): Путь к английскому OGG-файлу.
+
+    Returns:
+        None
+
+    Side Effects:
+        Изменяет содержимое словаря `data`:
+        добавляет или обновляет поля:
+
+        - `ogg_en_path`
+        - `wav_en_path`
+        - `ogg_ru_path`
+        - `wav_ru_path`
+
+    Notes:
+        Если запись с указанным ключом отсутствует в словаре,
+        функция не выполняет никаких действий.
+    """
+    wav_en_path, ogg_ru_path, wav_ru_path = replace_ogg_path(ogg_path)
+
+    if sub_entry := data.get(key):
+        sub_entry["ogg_en_path"] = ogg_path
+        sub_entry["wav_en_path"] = wav_en_path
+        sub_entry["ogg_ru_path"] = ogg_ru_path
+        sub_entry["wav_ru_path"] = wav_ru_path
 
 
 def add_oggs_to_subs_db():

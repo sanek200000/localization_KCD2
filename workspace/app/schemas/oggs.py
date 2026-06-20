@@ -17,7 +17,10 @@ class OggAdd(BaseModel):
 
     hash: str
     name: str
-    path: str
+    ogg_en_path: str
+    wav_en_path: str
+    ogg_ru_path: str
+    wav_ru_path: str
 
 
 class Oggs(OggAdd):
@@ -32,5 +35,3 @@ class Oggs(OggAdd):
     """
 
     id: int
-
-    model_config = ConfigDict(from_attributes=True)

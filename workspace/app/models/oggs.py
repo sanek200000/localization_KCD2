@@ -24,4 +24,7 @@ class OggsOrm(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     hash: Mapped[str] = mapped_column(String(15))
     name: Mapped[str] = mapped_column(String(50), unique=True)
-    path: Mapped[str]
+    ogg_en_path: Mapped[str]
+    wav_en_path: Mapped[str]
+    ogg_ru_path: Mapped[str]
+    wav_ru_path: Mapped[str]

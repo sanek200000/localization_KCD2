@@ -49,22 +49,6 @@ def process_item(item: dict):
     command = f"ffmpeg -i {input_ogg} -ac 1 -ar 24000 -c:a pcm_s16le {output_wav}"
     subprocess.run(command, shell=True, check=True)
 
-    # subprocess.run(
-    #     [
-    #         "ffmpeg",
-    #         "-i",
-    #         str(input_ogg),
-    #         "-ac",
-    #         "1",
-    #         "-ar",
-    #         "24000",
-    #         "-c:a",
-    #         "pcm_s16le",
-    #         str(output_wav),
-    #     ],
-    #     check=True,
-    # )
-
 
 def iter_items(data: dict):
     for key, value in data.items():
