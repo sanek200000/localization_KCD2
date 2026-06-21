@@ -13,7 +13,7 @@ def temp():
     from app.helper import load_marshal
 
     data = load_marshal(TEMP_PATH.joinpath("db_with_pathes_and_accent.bin"))
-    data = load_marshal(TEMP_PATH.joinpath("db_with_pathes.bin"))
+    # data = load_marshal(TEMP_PATH.joinpath("db_with_pathes.bin"))
     for i, (k, v) in enumerate(data.items()):
         if i == 1:
             break
@@ -25,7 +25,7 @@ def temp():
 if __name__ == "__main__":
     pass
 
-    # temp()
+    temp()
 
     # delete_all_oggs()
-    list_all_oggs()
+    # list_all_oggs()

@@ -1,21 +1,24 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 
 class OggAdd(BaseModel):
     """
-    Модель данных (схема) для добавления информации об OGG-файле.
+    Pydantic-модель для создания записи об аудиофайле.
 
-    Используется при добавлении новых записей в хранилище, а также
-    для преобразования ORM-объектов в Pydantic-модели благодаря
-    настройке `from_attributes=True`.
+    Содержит идентификатор субтитра и пути к связанным аудиофайлам
+    на английском и русском языках в форматах OGG и WAV.
 
     Attributes:
-        hash (str): Уникальный хеш аудиофайла.
-        name (str): Имя файла или идентификатор аудио.
-        path (str): Полный путь к OGG-файлу в файловой системе.
+        key (str): Уникальный идентификатор субтитра, с которым
+            связан аудиофайл.
+        name (str): Уникальное имя аудиофайла.
+        ogg_en_path (str): Путь к английскому OGG-файлу.
+        wav_en_path (str): Путь к английскому WAV-файлу.
+        ogg_ru_path (str): Путь к русскому OGG-файлу.
+        wav_ru_path (str): Путь к русскому WAV-файлу.
     """
 
-    hash: str
+    key: str
     name: str
     ogg_en_path: str
     wav_en_path: str
@@ -23,7 +26,7 @@ class OggAdd(BaseModel):
     wav_ru_path: str
 
 
-class Oggs(OggAdd):
+class Ogg(OggAdd):
     """
     Модель данных (схема) для чтения идентификатора записи и хеша OGG-файла.
 

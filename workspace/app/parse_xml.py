@@ -1,11 +1,5 @@
-from helper import (
-    LOCALIZATION_PATH,
-    TEMP_PATH,
-    append_json,
-    append_txt,
-    load_json,
-    append_marshal,
-)
+from app.config import LOCALIZATION_PATH, TEMP_PATH
+from helper import append_json, append_txt, load_json, append_marshal
 from pathlib import Path
 import xml.etree.ElementTree as ET
 from tqdm import tqdm

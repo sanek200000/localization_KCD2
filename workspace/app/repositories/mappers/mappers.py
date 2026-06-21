@@ -1,6 +1,8 @@
-from app.models.oggs import OggsOrm
 from app.repositories.mappers.base import DataMapper
-from app.schemas.oggs import Oggs
+from app.models.oggs import OggsOrm
+from app.models.subs import SubsOrm
+from app.schemas.oggs import Ogg
+from app.schemas.subs import Sub
 
 
 class OggsDataMapper(DataMapper):
@@ -27,4 +29,9 @@ class OggsDataMapper(DataMapper):
     """
 
     model = OggsOrm
-    schema = Oggs
+    schema = Ogg
+
+
+class SubsDataMapper(DataMapper):
+    model = SubsOrm
+    schema = Sub

@@ -1,5 +1,6 @@
 from app.db import SESSION_MAKER
 from app.repositories.oggs import OggsRepository
+from app.repositories.subs import SubsRepository
 
 
 class DBManager:
@@ -38,6 +39,7 @@ class DBManager:
         self.session = self.session_factory()
 
         self.oggs = OggsRepository(self.session)
+        self.subs = SubsRepository(self.session)
 
         return self
 

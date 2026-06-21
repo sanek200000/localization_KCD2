@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 from pathlib import Path
+from app.config import TEMP_PATH
 from helper import append_marshal, load_marshal
 
-DB_WITH_FILES_PATHES = Path("./temp/db_with_pathes.bin")
-DB_WITH_FILES_PATHES_AND_ACCENT = Path("./temp/db_with_pathes_and_accent.bin")
-DB_ERROR_ACCENT = Path("./temp/db_error_accent.bin")
+DB_WITH_FILES_PATHES = TEMP_PATH.joinpath("db_with_pathes.bin")
+DB_WITH_FILES_PATHES_AND_ACCENT = TEMP_PATH.joinpath("db_with_pathes_and_accent.bin")
+DB_ERROR_ACCENT = TEMP_PATH.joinpath("db_error_accent.bin")
 
 
 def add_accents(data: dict):

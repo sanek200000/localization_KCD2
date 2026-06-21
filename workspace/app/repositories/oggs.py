@@ -5,5 +5,4 @@ from app.repositories.mappers.mappers import OggsDataMapper
 
 class OggsRepository(BaseRepository):
     model = OggsOrm
-    # schema = Oggs
     mapper = OggsDataMapper
