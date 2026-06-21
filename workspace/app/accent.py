@@ -1,12 +1,33 @@
 #!/usr/bin/env python3
 
-from pathlib import Path
+from pydantic import ValidationError
+
 from app.config import TEMP_PATH
-from helper import append_marshal, load_marshal
+from app.schemas.subs import SubAdd
+from app.api.subs import add_sub
+from helper import load_marshal
 
 DB_WITH_FILES_PATHES = TEMP_PATH.joinpath("db_with_pathes.bin")
 DB_WITH_FILES_PATHES_AND_ACCENT = TEMP_PATH.joinpath("db_with_pathes_and_accent.bin")
 DB_ERROR_ACCENT = TEMP_PATH.joinpath("db_error_accent.bin")
+
+
+def convert_ru_sub(text: str):
+    from ruaccent import RUAccent
+
+    accentizer = RUAccent()
+    accentizer.load(
+        omograph_model_size="turbo3.1", use_dictionary=True, tiny_mode=False
+    )
+
+    try:
+        accent_text = accentizer.process_all(text)
+    except Exception as e:
+        print(e)
+        # error_keys[key] = value.get("ru_sub")
+        return text
+
+    return accent_text
 
 
 def add_accents(data: dict):
@@ -49,14 +70,8 @@ def add_accents(data: dict):
         Исключения, возникающие при обработке отдельных текстов,
         перехватываются внутри функции и не пробрасываются наружу.
     """
-    from ruaccent import RUAccent
 
     DEBUG = 0
-
-    accentizer = RUAccent()
-    accentizer.load(
-        omograph_model_size="turbo3.1", use_dictionary=True, tiny_mode=False
-    )
 
     error_keys = dict()
     for i, (key, value) in enumerate(data.items()):
@@ -68,19 +83,46 @@ def add_accents(data: dict):
         text = value.get("ru_sub")
         print(text)
 
-        try:
-            accent_text = accentizer.process_all(text)
-            value["ru_sub_accent"] = accent_text
-        except Exception as e:
-            error_keys[key] = value.get("ru_sub")
-            accent_text = None
-            continue
+        accent_text = convert_ru_sub(text)
+        value["ru_sub_accent"] = accent_text
 
         print(accent_text, end="\n\n")
         # [print(k, v) for k, v in value.items()]
         # print()
 
     return error_keys
+
+
+def fill_subs():
+    DEBUG = 0
+    data: dict = load_marshal(DB_WITH_FILES_PATHES_AND_ACCENT)
+
+    for i, (key, value) in enumerate(data.items()):
+        if DEBUG and i == 10:
+            break
+        if key == "nothing":
+            continue
+
+        try:
+            key_sub = value.get("key")[-15:]
+            en_sub = value.get("en_sub")
+            ru_sub = value.get("ru_sub")
+            ru_accent = value.get("ru_sub_accent")
+        except Exception as ex:
+            [print(f"{k}:\t{v}") for k, v in value.items()]
+            raise Exception(ex)
+
+        try:
+            sub_data = SubAdd(
+                key=key_sub,
+                en_sub=en_sub,
+                ru_sub=ru_sub,
+                ru_accent=ru_accent,
+            )
+        except ValidationError as ex:
+            [print(f"{k}:\t{v}") for k, v in value.items()]
+
+        add_sub(data=sub_data)
 
 
 if __name__ == "__main__":

@@ -23,7 +23,7 @@ def add_ogg(db: DBManager, data: OggAdd):
 
     result = db.oggs.add(data)
     print(f"{result = }")
-    # db.commit()
+    db.commit()
 
 
 @inject_db

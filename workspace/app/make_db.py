@@ -64,7 +64,7 @@ def list_all_oggs(folder: Path = EN_VOICE_OGG_PATH):
         - При включенном режиме DEBUG обрабатываются только первые
           12 найденных файлов.
     """
-    DEBUG = 1
+    DEBUG = 0
     save_file_path = TEMP_PATH.joinpath(f"list_oggs_from__{folder.name}.bin")
     save_file_path.unlink(missing_ok=True)
 
@@ -82,24 +82,24 @@ def list_all_oggs(folder: Path = EN_VOICE_OGG_PATH):
 
         data[ogg_stem] = str(ogg)
 
-        wav_en_path, ogg_ru_path, wav_ru_path = replace_ogg_path(str(ogg))
+        ogg_en_path, wav_en_path, ogg_ru_path, wav_ru_path = replace_ogg_path(str(ogg))
         row = OggAdd(
-            hash=ogg_stem[-15:],
+            key=ogg_stem[-15:],
             name=ogg_stem,
-            ogg_en_path=str(ogg),
+            ogg_en_path=ogg_en_path,
             wav_en_path=wav_en_path,
             ogg_ru_path=ogg_ru_path,
             wav_ru_path=wav_ru_path,
         )
         add_ogg(data=row)
 
-    append_marshal(save_file_path, data)
-    append_json(save_file_path.with_suffix(".json"), data)
-
-    append_txt(
-        "./temp/counts.txt",
-        f"|{folder}| entries: {len(data)}",
-    )
+    # append_marshal(save_file_path, data)
+    # append_json(save_file_path.with_suffix(".json"), data)
+    #
+    # append_txt(
+    #     "./temp/counts.txt",
+    #     f"|{folder}| entries: {len(data)}",
+    # )
 
 
 def reverse_index_for_sub():
@@ -156,41 +156,8 @@ def reverse_index_for_sub():
     append_marshal(REVERSE_INDEX_FOR_SUB, stem_to_key)
 
 
-def replace_ogg_path(ogg_path) -> tuple[str, str, str]:
-    """
-    Формирует связанные пути для WAV-версии исходного аудио и
-    русскоязычных аудиофайлов на основе пути к английскому OGG-файлу.
-
-    Выполняет замену каталогов в исходном пути и при необходимости
-    изменяет расширение файла на ``.wav``.
-
-    Args:
-        ogg_path (str): Путь к английскому OGG-файлу, расположенному
-            в каталоге `en_voice_ogg`.
-
-    Returns:
-        tuple[str, str, str]:
-            Кортеж из трех путей:
-
-            - `wav_en_path` — путь к английскому WAV-файлу;
-            - `ogg_ru_path` — путь к русскому OGG-файлу;
-            - `wav_ru_path` — путь к русскому WAV-файлу.
-
-    Examples:
-        >>> replace_ogg_path(
-        ...     "/data/en_voice_ogg/dialog/test_123.ogg"
-        ... )
-        (
-            "/data/en_voice_wav/dialog/test_123.wav",
-            "/data/ru_voice_ogg/dialog/test_123.ogg",
-            "/data/ru_voice_wav/dialog/test_123.wav"
-        )
-
-    Notes:
-        Функция предполагает, что входной путь содержит подстроку
-        `"en_voice_ogg"`. Если структура каталогов отличается,
-        результат может быть некорректным.
-    """
+def replace_ogg_path(ogg_path) -> tuple[str, str, str, str]:
+    ogg_en_path = str(ogg_path)
     wav_en_path = str(
         Path(ogg_path.replace("en_voice_ogg", "en_voice_wav")).with_suffix(".wav")
     )
@@ -198,7 +165,7 @@ def replace_ogg_path(ogg_path) -> tuple[str, str, str]:
     wav_ru_path = str(
         Path(ogg_path.replace("en_voice_ogg", "ru_voice_wav")).with_suffix(".wav")
     )
-    return wav_en_path, ogg_ru_path, wav_ru_path
+    return ogg_en_path, wav_en_path, ogg_ru_path, wav_ru_path
 
 
 def add_entry_to_subs_dict(data: dict, key: str, ogg_path: str):

@@ -14,7 +14,7 @@ services:
       - ./.docker/nvim:/home/dev/.config/nvim
       - ./.docker/scripts:/home/dev/.scripts:ro
       - /mnt/MyDownloads/000temp/Localization:/workspace/localization
-      - /mnt/kcd2:/workspace/kcd2:ro
+      # - /mnt/kcd2:/workspace/kcd2:ro
       - sqlite_data:/db
       - dev-home:/home/dev
     env_file:

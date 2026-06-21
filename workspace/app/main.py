@@ -1,9 +1,12 @@
 import sys
 from pathlib import Path
 
+
 sys.path.append(str(Path(__file__).parent.parent))
 
 
+from app.api.subs import delete_all_subs
+from app.accent import fill_subs
 from app.api.oggs import delete_all_oggs
 from app.make_db import list_all_oggs
 
@@ -25,7 +28,8 @@ def temp():
 if __name__ == "__main__":
     pass
 
-    temp()
-
+    # fill_subs()
+    # delete_all_subs()
+    # temp()
     # delete_all_oggs()
-    # list_all_oggs()
+    list_all_oggs()

@@ -32,8 +32,8 @@ class SubsOrm(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     key: Mapped[str] = mapped_column(String(15), unique=True, index=True)
-    en_sub: Mapped[str]
+    en_sub: Mapped[str | None]
     ru_sub: Mapped[str]
-    ru_accent: Mapped[str]
+    ru_accent: Mapped[str | None]
 
     oggs: Mapped[list["OggsOrm"]] = relationship(back_populates="sub")

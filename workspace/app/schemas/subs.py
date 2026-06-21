@@ -20,9 +20,9 @@ class SubAdd(BaseModel):
     """
 
     key: str
-    en_sub: str
+    en_sub: Optional[str] = None
     ru_sub: str
-    ru_accent: str
+    ru_accent: Optional[str] = None
 
 
 class Sub(SubAdd):

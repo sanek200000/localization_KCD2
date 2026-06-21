@@ -12,7 +12,7 @@ def get_subs(db: DBManager):
 def add_sub(db: DBManager, data: SubAdd):
     result = db.subs.add(data)
     print(f"{result = }")
-    # db.commit()
+    db.commit()
 
 
 @inject_db
