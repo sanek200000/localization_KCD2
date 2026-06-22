@@ -29,6 +29,11 @@ class BaseRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
+    def get_filtred(self, *filter, **filter_by):
+        query = select(self.model).filter(*filter).filter_by(**filter_by)
+        result = self.session.execute(query)
+        return result.scalars().all()
+
     def get_all(self, *args, **kwargs):
         """
         Получает все записи из таблицы, связанной с моделью репозитория.
@@ -40,9 +45,7 @@ class BaseRepository:
         Returns:
             list[Base]: Список объектов ORM-модели.
         """
-        query = select(self.model)
-        result = self.session.execute(query)
-        return result.scalars().all()
+        return self.get_filtred()
 
     def get_one_or_none(self, **filter_by):
         """

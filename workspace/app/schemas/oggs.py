@@ -26,7 +26,7 @@ class OggAdd(BaseModel):
     wav_ru_path: str
 
 
-class Ogg(OggAdd):
+class OggDTO(OggAdd):
     """
     Модель данных (схема) для чтения идентификатора записи и хеша OGG-файла.
 

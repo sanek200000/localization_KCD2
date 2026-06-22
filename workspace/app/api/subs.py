@@ -1,15 +1,25 @@
 from app.api.dependencies import inject_db
-from app.schemas.subs import SubAdd
+from app.schemas.subs import SubAddDTO
 from app.utils.db_manager import DBManager
 
 
 @inject_db
-def get_subs(db: DBManager):
+def get_all_subs(db: DBManager):
     return db.subs.get_all()
 
 
 @inject_db
-def add_sub(db: DBManager, data: SubAdd):
+def get_subs_by_filter(db: DBManager, *args, **kwargs):
+    return db.subs.get_filtred(*args, **kwargs)
+
+
+@inject_db
+def get_null_accent(db: DBManager):
+    return db.subs.get_null_accent()
+
+
+@inject_db
+def add_sub(db: DBManager, data: SubAddDTO):
     result = db.subs.add(data)
     print(f"{result = }")
     db.commit()

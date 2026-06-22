@@ -3,7 +3,7 @@
 from pydantic import ValidationError
 
 from app.config import TEMP_PATH
-from app.schemas.subs import SubAdd
+from app.schemas.subs import SubAddDTO
 from app.api.subs import add_sub
 from helper import load_marshal
 
@@ -113,7 +113,7 @@ def fill_subs():
             raise Exception(ex)
 
         try:
-            sub_data = SubAdd(
+            sub_data = SubAddDTO(
                 key=key_sub,
                 en_sub=en_sub,
                 ru_sub=ru_sub,

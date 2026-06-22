@@ -82,7 +82,7 @@ def list_all_oggs(folder: Path = EN_VOICE_OGG_PATH):
 
         data[ogg_stem] = str(ogg)
 
-        ogg_en_path, wav_en_path, ogg_ru_path, wav_ru_path = replace_ogg_path(str(ogg))
+        ogg_en_path, wav_en_path, ogg_ru_path, wav_ru_path = replace_ogg_path(ogg)
         row = OggAdd(
             key=ogg_stem[-15:],
             name=ogg_stem,
@@ -156,7 +156,7 @@ def reverse_index_for_sub():
     append_marshal(REVERSE_INDEX_FOR_SUB, stem_to_key)
 
 
-def replace_ogg_path(ogg_path) -> tuple[str, str, str, str]:
+def replace_ogg_path(ogg_path: Path) -> tuple[str, str, str, str]:
     ogg_en_path = str(ogg_path)
     wav_en_path = str(
         Path(ogg_path.replace("en_voice_ogg", "en_voice_wav")).with_suffix(".wav")

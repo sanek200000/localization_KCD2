@@ -2,10 +2,10 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from app.schemas.oggs import Ogg
+from app.schemas.oggs import OggDTO
 
 
-class SubAdd(BaseModel):
+class SubAddDTO(BaseModel):
     """
     Pydantic-модель для создания записи субтитра.
 
@@ -25,7 +25,7 @@ class SubAdd(BaseModel):
     ru_accent: Optional[str] = None
 
 
-class Sub(SubAdd):
+class SubDTO(SubAddDTO):
     """
     Pydantic-модель субтитра, содержащая идентификатор записи.
 
@@ -36,4 +36,4 @@ class Sub(SubAdd):
     """
 
     id: int
-    oggs: Optional[list[Ogg]] = None
+    oggs: Optional[list[OggDTO]] = None

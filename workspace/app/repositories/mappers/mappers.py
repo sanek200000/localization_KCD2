@@ -1,8 +1,8 @@
 from app.repositories.mappers.base import DataMapper
 from app.models.oggs import OggsOrm
 from app.models.subs import SubsOrm
-from app.schemas.oggs import Ogg
-from app.schemas.subs import Sub
+from app.schemas.oggs import OggDTO
+from app.schemas.subs import SubDTO
 
 
 class OggsDataMapper(DataMapper):
@@ -29,9 +29,9 @@ class OggsDataMapper(DataMapper):
     """
 
     model = OggsOrm
-    schema = Ogg
+    schema = OggDTO
 
 
 class SubsDataMapper(DataMapper):
     model = SubsOrm
-    schema = Sub
+    schema = SubDTO
