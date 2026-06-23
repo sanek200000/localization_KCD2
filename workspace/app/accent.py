@@ -6,23 +6,22 @@ from app.config import TEMP_PATH
 from app.schemas.subs import SubAddDTO
 from app.api.subs import add_sub
 from helper import load_marshal
+from ruaccent import RUAccent
 
 DB_WITH_FILES_PATHES = TEMP_PATH.joinpath("db_with_pathes.bin")
 DB_WITH_FILES_PATHES_AND_ACCENT = TEMP_PATH.joinpath("db_with_pathes_and_accent.bin")
 DB_ERROR_ACCENT = TEMP_PATH.joinpath("db_error_accent.bin")
 
+accentizer = RUAccent()
+accentizer.load(omograph_model_size="turbo3.1", use_dictionary=True, tiny_mode=False)
+
 
 def convert_ru_sub(text: str):
-    from ruaccent import RUAccent
-
-    accentizer = RUAccent()
-    accentizer.load(
-        omograph_model_size="turbo3.1", use_dictionary=True, tiny_mode=False
-    )
 
     try:
-        accent_text = accentizer.process_all(text)
+        accent_text = accentizer.process_all(text.strip())
     except Exception as e:
+        print(type(e))
         print(e)
         # error_keys[key] = value.get("ru_sub")
         return text
@@ -85,8 +84,8 @@ def add_accents(data: dict):
 
         accent_text = convert_ru_sub(text)
         value["ru_sub_accent"] = accent_text
+        # print(accent_text, end="\n\n")
 
-        print(accent_text, end="\n\n")
         # [print(k, v) for k, v in value.items()]
         # print()
 

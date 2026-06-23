@@ -1,7 +1,7 @@
 from typing import Type
 
 from pydantic import BaseModel
-from sqlalchemy import delete, insert, select
+from sqlalchemy import delete, insert, select, update
 from sqlalchemy.orm import Session
 
 from app.db import Base
@@ -29,8 +29,10 @@ class BaseRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def get_filtred(self, *filter, **filter_by):
-        query = select(self.model).filter(*filter).filter_by(**filter_by)
+    def get_filtred(self, *filter, options=tuple(), **filter_by):
+        query = (
+            select(self.model).options(*options).filter(*filter).filter_by(**filter_by)
+        )
         result = self.session.execute(query)
         return result.scalars().all()
 
@@ -68,6 +70,11 @@ class BaseRepository:
         result = self.session.execute(query)
         return result.scalars().one_or_none()
 
+    def get_one(self, **filter_by):
+        query = select(self.model).filter_by(**filter_by)
+        result = self.session.execute(query)
+        return result.scalars().one()
+
     def add(self, data: BaseModel):
         """
         Создает новую запись в базе данных.
@@ -92,6 +99,14 @@ class BaseRepository:
         res = result.scalars().one_or_none()
         if res:
             return self.mapper.map_to_domain_entity(res)
+
+    def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by):
+        stmt = (
+            update(self.model)
+            .filter_by(**filter_by)
+            .values(**data.model_dump(exclude_unset=exclude_unset))
+        )
+        self.session.execute(stmt)
 
     def delete(self, **kwargs):
         query = delete(self.model).filter_by(**kwargs)

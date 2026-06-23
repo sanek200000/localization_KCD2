@@ -37,3 +37,9 @@ class SubDTO(SubAddDTO):
 
     id: int
     oggs: Optional[list[OggDTO]] = None
+
+
+class SubPatchDTO(BaseModel):
+    en_sub: Optional[str] = None
+    ru_sub: Optional[str] = None
+    ru_accent: Optional[str] = None

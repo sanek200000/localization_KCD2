@@ -1,5 +1,5 @@
 from app.api.dependencies import inject_db
-from app.schemas.subs import SubAddDTO
+from app.schemas.subs import SubAddDTO, SubPatchDTO
 from app.utils.db_manager import DBManager
 
 
@@ -19,9 +19,20 @@ def get_null_accent(db: DBManager):
 
 
 @inject_db
+def get_sub(db: DBManager, sub_id: int):
+    return db.subs.get_one(id=sub_id)
+
+
+@inject_db
 def add_sub(db: DBManager, data: SubAddDTO):
     result = db.subs.add(data)
     print(f"{result = }")
+    db.commit()
+
+
+@inject_db
+def patch_sub(db: DBManager, sub_id: int, data: SubPatchDTO):
+    db.subs.edit(data=data, exclude_unset=True, id=sub_id)
     db.commit()
 
 
