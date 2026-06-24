@@ -157,6 +157,46 @@ def reverse_index_for_sub():
 
 
 def replace_ogg_path(ogg_path: Path) -> tuple[str, str, str, str]:
+    """
+    Формирует набор связанных путей к аудиофайлам на основе пути
+    к английскому OGG-файлу.
+
+    По исходному пути создает пути для:
+
+    - английского OGG-файла;
+    - английского WAV-файла;
+    - русского OGG-файла;
+    - русского WAV-файла.
+
+    Args:
+        ogg_path (Path): Путь к английскому OGG-файлу,
+            расположенному в каталоге `en_voice_ogg`.
+
+    Returns:
+        tuple[str, str, str, str]:
+            Кортеж в следующем порядке:
+
+            - `ogg_en_path` — путь к английскому OGG-файлу;
+            - `wav_en_path` — путь к английскому WAV-файлу;
+            - `ogg_ru_path` — путь к русскому OGG-файлу;
+            - `wav_ru_path` — путь к русскому WAV-файлу.
+
+    Examples:
+        >>> replace_ogg_path(
+        ...     Path("/data/en_voice_ogg/dialog/test_001.ogg")
+        ... )
+        (
+            "/data/en_voice_ogg/dialog/test_001.ogg",
+            "/data/en_voice_wav/dialog/test_001.wav",
+            "/data/ru_voice_ogg/dialog/test_001.ogg",
+            "/data/ru_voice_wav/dialog/test_001.wav"
+        )
+
+    Notes:
+        Функция предполагает наличие подстроки `"en_voice_ogg"`
+        в исходном пути. При иной структуре каталогов результат
+        может быть некорректным.
+    """
     ogg_en_path = str(ogg_path)
     wav_en_path = str(
         Path(ogg_path.replace("en_voice_ogg", "en_voice_wav")).with_suffix(".wav")

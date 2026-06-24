@@ -28,12 +28,34 @@ def add_ogg(db: DBManager, data: OggAdd):
 
 @inject_db
 def delete_ogg(db: DBManager, id: int):
+    """
+    Удаляет запись об OGG-файле по идентификатору.
+
+    После удаления выполняется фиксация транзакции.
+
+    Args:
+        db (DBManager): Менеджер доступа к базе данных,
+            автоматически передаваемый декоратором `inject_db`.
+        id (int): Идентификатор записи для удаления.
+
+    Returns:
+        None
+    """
     db.oggs.delete(id=id)
     db.commit()
 
 
 @inject_db
 def delete_all_oggs(db: DBManager):
-    all_oggs = db.oggs.get_all()
-    for ogg in all_oggs:
-        delete_ogg(id=ogg.id)
+    """
+    Удаляет все записи об OGG-файлах из базы данных.
+
+    Args:
+        db (DBManager): Менеджер доступа к базе данных,
+            автоматически передаваемый декоратором `inject_db`.
+
+    Returns:
+        None
+    """
+    db.oggs.delete()
+    db.commit()

@@ -10,26 +10,49 @@ from app.repositories.mappers.base import DataMapper
 
 class BaseRepository:
     """
-    Базовый репозиторий для выполнения типовых операций с ORM-моделями.
+    Базовый репозиторий для работы с ORM-моделями.
 
-    Предоставляет общий интерфейс для работы с таблицами базы данных
-    через SQLAlchemy. Конкретные репозитории должны наследоваться от
-    данного класса и определять атрибут `model`, содержащий ORM-модель.
+    Реализует стандартный набор CRUD-операций и предоставляет
+    единый интерфейс доступа к данным через SQLAlchemy.
+
+    Конкретные репозитории должны наследоваться от данного класса
+    и определить атрибуты `model` и `mapper`.
 
     Attributes:
-        model (Type[Base]): ORM-модель SQLAlchemy, с которой работает
-            репозиторий.
+        model (Type[Base]): ORM-модель SQLAlchemy.
+        mapper (Type[DataMapper]): Маппер для преобразования
+            ORM-объектов в доменные сущности и обратно.
         session (Session): Активная сессия базы данных.
     """
 
     model: Type[Base] = None
-    # schema: Type[BaseModel] = None
     mapper: Type[DataMapper] = None
 
     def __init__(self, session: Session) -> None:
         self.session = session
 
     def get_filtred(self, *filter, options=tuple(), **filter_by):
+        """
+        Получает список записей с применением SQLAlchemy-фильтров и опций.
+
+        Позволяет комбинировать позиционные выражения фильтрации
+        (`filter`) с именованными условиями (`filter_by`), а также
+        передавать дополнительные опции загрузки отношений через
+        параметр `options`.
+
+        Args:
+            *filter: SQLAlchemy-выражения фильтрации, например
+                `Model.field == value`.
+            options (tuple, optional): Опции SQLAlchemy для настройки
+                загрузки связанных сущностей (`joinedload`,
+                `selectinload` и др.). По умолчанию пустой кортеж.
+            **filter_by: Именованные параметры фильтрации,
+                соответствующие полям ORM-модели.
+
+        Returns:
+            list: Список объектов ORM-модели, удовлетворяющих условиям
+            запроса.
+        """
         query = (
             select(self.model).options(*options).filter(*filter).filter_by(**filter_by)
         )
@@ -38,16 +61,19 @@ class BaseRepository:
 
     def get_all(self, *args, **kwargs):
         """
-        Получает все записи из таблицы, связанной с моделью репозитория.
+        Получает все записи модели.
+
+        Является сокращением для вызова метода `get_filtred()`
+        без условий фильтрации.
 
         Args:
-            *args: Зарезервировано для будущих расширений.
-            **kwargs: Зарезервировано для будущих расширений.
+            *args: Зарезервировано для совместимости интерфейса.
+            **kwargs: Зарезервировано для совместимости интерфейса.
 
         Returns:
-            list[Base]: Список объектов ORM-модели.
+            list: Список всех объектов ORM-модели.
         """
-        return self.get_filtred()
+         return self.get_filtred()
 
     def get_one_or_none(self, **filter_by):
         """
@@ -71,6 +97,22 @@ class BaseRepository:
         return result.scalars().one_or_none()
 
     def get_one(self, **filter_by):
+        """
+        Получает одну запись по заданным критериям фильтрации.
+
+        Args:
+            **filter_by: Именованные параметры фильтрации,
+                соответствующие полям ORM-модели.
+
+        Returns:
+            Base: Найденный ORM-объект.
+
+        Raises:
+            sqlalchemy.exc.NoResultFound:
+                Если запись не найдена.
+            sqlalchemy.exc.MultipleResultsFound:
+                Если найдено более одной записи.
+        """
         query = select(self.model).filter_by(**filter_by)
         result = self.session.execute(query)
         return result.scalars().one()
@@ -101,6 +143,22 @@ class BaseRepository:
             return self.mapper.map_to_domain_entity(res)
 
     def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by):
+        """
+        Обновляет записи, удовлетворяющие условиям фильтрации.
+
+        Значения для обновления извлекаются из переданной
+        Pydantic-модели.
+
+        Args:
+            data (BaseModel): Модель с новыми данными.
+            exclude_unset (bool, optional): Если `True`, в запрос
+                включаются только явно заданные поля модели.
+                По умолчанию `False`.
+            **filter_by: Условия фильтрации записей для обновления.
+
+        Returns:
+            None
+        """
         stmt = (
             update(self.model)
             .filter_by(**filter_by)
@@ -109,5 +167,15 @@ class BaseRepository:
         self.session.execute(stmt)
 
     def delete(self, **kwargs):
+        """
+        Удаляет записи, удовлетворяющие условиям фильтрации.
+
+        Args:
+            **kwargs: Именованные параметры фильтрации,
+                соответствующие полям ORM-модели.
+
+        Returns:
+            None
+        """
         query = delete(self.model).filter_by(**kwargs)
         self.session.execute(query)

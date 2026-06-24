@@ -40,6 +40,17 @@ class SubDTO(SubAddDTO):
 
 
 class SubPatchDTO(BaseModel):
+    """
+    Pydantic-модель для частичного обновления сущности субтитра.
+
+    Используется для PATCH-операций, где допускается обновление
+    только части полей записи. Все поля являются опциональными.
+
+    Attributes:
+        en_sub (Optional[str]): Обновленный текст на английском языке.
+        ru_sub (Optional[str]): Обновленный перевод на русский язык.
+        ru_accent (Optional[str]): Обновленный русский текст с ударениями.
+    """
     en_sub: Optional[str] = None
     ru_sub: Optional[str] = None
     ru_accent: Optional[str] = None

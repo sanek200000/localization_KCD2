@@ -33,5 +33,25 @@ class OggsDataMapper(DataMapper):
 
 
 class SubsDataMapper(DataMapper):
+    """
+    Маппер для преобразования данных субтитров между ORM-моделью
+    и Pydantic-схемой.
+
+    Обеспечивает конвертацию между слоем хранения данных (`SubsOrm`)
+    и DTO-схемой (`SubDTO`).
+
+    Attributes:
+        model (Type[SubsOrm]): ORM-модель таблицы субтитров.
+        schema (Type[SubDTO]): Pydantic-схема для субтитров.
+
+    Examples:
+        ORM → DTO:
+
+        >>> dto = SubsDataMapper.map_to_domain_entity(orm_obj)
+
+        DTO → ORM:
+
+        >>> orm_obj = SubsDataMapper.map_to_persistance_entity(dto)
+    """
     model = SubsOrm
     schema = SubDTO
