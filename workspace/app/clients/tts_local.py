@@ -95,11 +95,11 @@ def convert_audio_en_to_ru(data: dict):
             append_txt(KEYS_WITHOUT_RUSUB, key)
             continue
 
-        speed = change_speed(target_text)
+        # speed = change_speed(target_text)
         target_audio.parent.mkdir(parents=True, exist_ok=True)
 
         wav, sr, spec = tts.infer(
-            speed=speed,
+            # speed=speed,
             ref_file=ref_audio,
             ref_text=ref_text,
             gen_text=target_text,

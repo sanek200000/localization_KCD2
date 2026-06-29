@@ -1,7 +1,11 @@
 import sys
 from pathlib import Path
 
+
 sys.path.append(str(Path(__file__).parent.parent))
+
+from app.config import APP_PATH
+from app.utils.generate_tree import save_structure
 
 
 def temp():
@@ -20,3 +24,5 @@ def temp():
 
 if __name__ == "__main__":
     pass
+
+    # save_structure(APP_PATH)
