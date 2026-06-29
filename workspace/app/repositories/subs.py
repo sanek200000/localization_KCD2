@@ -1,3 +1,5 @@
+from collections.abc import Iterator
+
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
@@ -19,6 +21,7 @@ class SubsRepository(BaseRepository):
         mapper (Type[SubsDataMapper]): Маппер для преобразования
             ORM-объектов в доменные сущности.
     """
+
     model = SubsOrm
     mapper = SubsDataMapper
 
@@ -43,5 +46,15 @@ class SubsRepository(BaseRepository):
         return self.get_filtred(
             self.model.ru_accent.is_(None),
             self.model.ru_sub.is_not(None),
-            # options=(selectinload(self.model.oggs),),
+        )
+
+    def get_subs_with_oggs(self):
+        return self.get_filtred(
+            options=(selectinload(self.model.oggs),),
+        )
+
+    def iter_subs_with_oggs(self, batch_size: int) -> Iterator:
+        return self.get_iter(
+            options=(selectinload(self.model.oggs),),
+            batch_size=batch_size,
         )

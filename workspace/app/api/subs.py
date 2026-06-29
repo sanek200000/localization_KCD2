@@ -4,18 +4,8 @@ from app.utils.db_manager import DBManager
 
 
 @inject_db
-def get_all_subs(db: DBManager):
-    """
-    Получает все записи субтитров.
-
-    Args:
-        db (DBManager): Менеджер базы данных, предоставляемый
-            декоратором `inject_db`.
-
-    Returns:
-        list: Список всех субтитров из таблицы `subs`.
-    """
-    return db.subs.get_all()
+def get_all_subs_iter(db: DBManager, batch_size: int):
+    return db.subs.iter_subs_with_oggs(batch_size=batch_size)
 
 
 @inject_db

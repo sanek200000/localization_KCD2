@@ -1,5 +1,6 @@
 from functools import wraps
 
+from app.clients.tts import TTSClient
 from app.db import SESSION_MAKER
 from app.utils.db_manager import DBManager
 
@@ -41,5 +42,14 @@ def inject_db(func):
     def wrapper(*args, **kwargs):
         with DBManager(SESSION_MAKER) as db:
             return func(db, *args, **kwargs)
+
+    return wrapper
+
+
+def inject_tts(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        with TTSClient() as tts_client:
+            return func(tts_client, *args, **kwargs)
 
     return wrapper

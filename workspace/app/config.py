@@ -11,6 +11,8 @@ GAME_FOLDER = BASE_DIR.joinpath("kcd2/")
 
 class Settings(BaseSettings):
     DB_PATH: str = str("/db/kcd2.db")
+    tts_server_url: str
+    tts_timeout: int = 300
 
     @property
     def DB_URL(self):
@@ -23,7 +25,7 @@ if __name__ == "__main__":
     print(f"{SS.DB_URL = }")
 
     [
-        print(f"{key} = {value}")
+        print(f"{key}: {value}")
         for key, value in globals().items()
         if not key.startswith("__")
     ]

@@ -2,15 +2,16 @@ from pathlib import Path
 
 import requests
 
+from app.config import SS
 from app.exceptions.tts import TTSConnectionError, TTSServerError
 from app.schemas.tts import TTSRequestDTO
 
 
 class TTSClient:
-    def __init__(self, server_url: str, timeout: int = 300) -> None:
-        self._server_url = server_url.rstrip("/")
-        self._timeout = timeout
+    def __init__(self) -> None:
         self._session = requests.Session()
+        self._server_url = SS.tts_server_url.rstrip("/")
+        self._timeout = SS.tts_timeout
 
     def close(self):
         self._session.close()

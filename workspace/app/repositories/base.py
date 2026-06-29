@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from typing import Type
 
 from pydantic import BaseModel
@@ -30,6 +31,45 @@ class BaseRepository:
 
     def __init__(self, session: Session) -> None:
         self.session = session
+
+    def get_iter(self, batch_size: int, options=tuple()) -> Iterator:
+        """
+        Возвращает итератор по объектам репозитория с пакетной загрузкой.
+
+        Выполняет потоковое чтение записей из базы данных, загружая их
+        пакетами указанного размера (`yield_per`). Каждый ORM-объект
+        автоматически преобразуется в соответствующую DTO с помощью
+        зарегистрированного `DataMapper`.
+
+        Такой подход позволяет обрабатывать большие объемы данных без
+        загрузки всех записей в память одновременно.
+
+        Args:
+            batch_size (int): Количество объектов, загружаемых из базы
+                данных за один пакет.
+            options (tuple, optional): Опции SQLAlchemy для настройки
+                загрузки связанных сущностей (например, `selectinload`,
+                `joinedload`). По умолчанию пустой кортеж.
+
+        Yields:
+            BaseModel: Экземпляры доменной DTO, соответствующие
+            записям ORM-модели.
+
+        Notes:
+            - Для потоковой загрузки используется параметр
+            `execution_options(yield_per=batch_size)`.
+            - Метод особенно эффективен при обработке большого числа
+            записей, поскольку не материализует весь результат
+            запроса в памяти.
+        """
+
+        stmt = (
+            select(self.model).options(*options).execution_options(yield_per=batch_size)
+        )
+        result = self.session.scalars(stmt)
+
+        for orm_obj in result:
+            yield self.mapper.map_to_domain_entity(orm_obj)
 
     def get_filtred(self, *filter, options=tuple(), **filter_by):
         """
@@ -73,7 +113,7 @@ class BaseRepository:
         Returns:
             list: Список всех объектов ORM-модели.
         """
-         return self.get_filtred()
+        return self.get_filtred()
 
     def get_one_or_none(self, **filter_by):
         """
