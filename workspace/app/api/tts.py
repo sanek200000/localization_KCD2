@@ -15,6 +15,43 @@ KEYS_WITHOUT_RUSUB = Path("./temp/keys_without_rusub.txt").resolve()
 
 @inject_tts
 def convert_audio_with_session(tts_client: TTSClient, limit: Optional[int] = None):
+    """
+    Генерирует русскую озвучку для субтитров с использованием TTS-клиента.
+
+    Выполняет потоковую обработку субтитров из базы данных и
+    генерирует аудиофайлы (WAV) для каждого связанного OGG-запроса.
+
+    Для каждого субтитра используется:
+    - `en_sub` как референсный текст
+    - `ru_accent` как целевой текст для синтеза речи
+    - связанные аудиозаписи (`oggs`) для определения путей
+      входного и выходного аудио
+
+    Args:
+        tts_client (TTSClient): Клиент TTS-сервиса, предоставляемый
+            через dependency injection (`inject_tts`).
+        limit (Optional[int]): Ограничение количества обрабатываемых
+            субтитров. Если None — обрабатываются все записи.
+
+    Returns:
+        None
+
+    Side Effects:
+        - Генерирует аудиофайлы через TTS-сервис.
+        - Записывает WAV-файлы на диск.
+        - Создает отсутствующие директории.
+        - Пропускает уже существующие файлы.
+        - Пропускает записи без `ru_accent`.
+
+    Notes:
+        - Используется потоковая загрузка субтитров
+          (`get_all_subs_iter(batch_size=100)`).
+        - Ошибки генерации TTS не прерывают выполнение пайплайна,
+          а логируются и приводят к пропуску текущей записи.
+        - Для каждого `sub.oggs` может быть сгенерировано несколько
+          аудиофайлов (one-to-many связь).
+    """
+
     data = get_all_subs_iter(batch_size=100)
 
     for i, sub in enumerate(data):
@@ -135,6 +172,3 @@ def convert_audio_en_to_ru(data: dict):
 if __name__ == "__main__":
     pass
 
-    data = load_marshal(DB)
-    # print(len(data))
-    convert_audio_en_to_ru(data)

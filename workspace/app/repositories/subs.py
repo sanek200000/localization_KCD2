@@ -49,11 +49,46 @@ class SubsRepository(BaseRepository):
         )
 
     def get_subs_with_oggs(self):
+        """
+        Получает все субтитры с предзагруженными связанными OGG-записями.
+
+        Выполняет запрос к таблице `subs` с использованием eager loading
+        для связи `oggs`, чтобы избежать N+1 проблемы при доступе
+        к связанным аудиофайлам.
+
+        Returns:
+            list[Subs]: Список субтитров с загруженными отношениями
+            `oggs`.
+
+        Notes:
+            Используется `selectinload`, что оптимально для загрузки
+            one-to-many связей.
+        """
         return self.get_filtred(
             options=(selectinload(self.model.oggs),),
         )
 
     def iter_subs_with_oggs(self, batch_size: int) -> Iterator:
+        """
+        Итеративно получает субтитры с предзагруженными OGG-записями
+        с использованием пакетной загрузки.
+
+        Объединяет:
+        - eager loading связи `oggs`
+        - потоковую обработку через `yield_per`
+
+        Позволяет обрабатывать большие наборы субтитров без загрузки
+        всей выборки в память.
+
+        Args:
+            batch_size (int): Размер пакета для построчной выборки.
+
+        Yields:
+            Subs: DTO-объекты субтитров с загруженными OGG-связями.
+
+        Notes:
+            Подходит для ETL-задач и фоновой обработки аудиоданных.
+        """
         return self.get_iter(
             options=(selectinload(self.model.oggs),),
             batch_size=batch_size,

@@ -5,6 +5,26 @@ from app.utils.db_manager import DBManager
 
 @inject_db
 def get_all_subs_iter(db: DBManager, batch_size: int):
+    """
+    Возвращает итератор по всем субтитрам с загруженными OGG-связями.
+
+    Использует потоковую выборку с пакетной загрузкой и eager loading
+    связанных сущностей `oggs`, чтобы обеспечить эффективную обработку
+    больших объемов данных без загрузки всей таблицы в память.
+
+    Args:
+        db (DBManager): Менеджер базы данных, предоставляемый
+            через dependency injection (`inject_db`).
+        batch_size (int): Размер батча для построчной выборки.
+
+    Returns:
+        Iterator[Subs]: Итератор по субтитрам с предзагруженными
+        связанными аудиозаписями (`oggs`).
+
+    Notes:
+        - Использует `yield_per` на уровне SQLAlchemy.
+        - Подходит для ETL-процессов и фоновой генерации аудио.
+    """
     return db.subs.iter_subs_with_oggs(batch_size=batch_size)
 
 
