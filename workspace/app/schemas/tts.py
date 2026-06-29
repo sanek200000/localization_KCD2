@@ -17,5 +17,5 @@ class TTSRequestDTO(BaseModel):
 class TTSResponseDTO(BaseModel):
     audio: bytes
 
-    def save(self, path: Path):
-        path.write_bytes(self.audio)
+    # def save(self, path: Path):
+    #     path.write_bytes(self.audio)

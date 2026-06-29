@@ -25,4 +25,4 @@ def temp():
 if __name__ == "__main__":
     pass
 
-    # save_structure(APP_PATH)
+    save_structure(APP_PATH)
