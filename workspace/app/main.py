@@ -12,5 +12,5 @@ from app.utils.generate_tree import save_structure
 if __name__ == "__main__":
     pass
 
-    convert_audio_with_session(limit=4)
+    convert_audio_with_session(limit=100)
     # save_structure(APP_PATH)

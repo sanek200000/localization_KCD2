@@ -9,6 +9,7 @@ services:
         USER_ID: ${USER_ID:-1000}
         GROUP_ID: ${GROUP_ID:-1000}
     container_name: python_localization_KCD2_dev
+    hostname: kcd2_localization_client
     volumes:
       - ./workspace:/workspace
       - ./.docker/nvim:/home/dev/.config/nvim
@@ -21,7 +22,8 @@ services:
       - .env
     tty: true
     stdin_open: true
-    command: ["zsh"]
+    command: poetry run python app/main.py
+    # command: ["zsh"]
 
   # translator:
   #   container_name: python_localization_KCD2_translator

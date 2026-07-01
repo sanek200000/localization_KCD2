@@ -21,6 +21,7 @@ class TTSClient:
         _server_url (str): Базовый URL TTS-сервера.
         _timeout (int | float): Таймаут запроса к серверу.
     """
+
     def __init__(self) -> None:
         self._session = requests.Session()
         self._server_url = SS.tts_server_url.rstrip("/")
@@ -99,7 +100,7 @@ class TTSClient:
                 }
 
                 response = self._session.post(
-                    url=f"{self._server_url}/tts",
+                    url=f"{self._server_url}/f5tts/tts",
                     files=files,
                     data=data,
                     timeout=self._timeout,

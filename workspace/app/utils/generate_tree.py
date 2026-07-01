@@ -82,6 +82,7 @@ def save_structure(root_dir: Path):
     tree = [f"{root_dir.name}/"] + build_tree(root_dir)
 
     output_file = TEMP_PATH.joinpath("project_structure.txt")
+    output_file.parent.mkdir(parents=True, exist_ok=True)
 
     with open(output_file, "w", encoding="utf-8") as f:
         f.write("\n".join(tree))
