@@ -1,5 +1,7 @@
 from pathlib import Path
 from typing import Optional
+
+from loguru import logger
 from app.api.dependencies import inject_tts
 from app.api.subs import get_all_subs_iter
 from app.clients.tts import TTSClient
@@ -14,7 +16,10 @@ KEYS_WITHOUT_RUSUB = Path("./temp/keys_without_rusub.txt").resolve()
 
 
 @inject_tts
-def convert_audio_with_session(tts_client: TTSClient, limit: Optional[int] = None):
+def convert_audio_with_remote_session(
+    tts_client: TTSClient,
+    limit: Optional[int] = None,
+):
     """
     Генерирует русскую озвучку для субтитров с использованием TTS-клиента.
 
@@ -63,11 +68,12 @@ def convert_audio_with_session(tts_client: TTSClient, limit: Optional[int] = Non
         for ogg in sub.oggs:
             ref_audio = Path(ogg.wav_en_path)
             target_audio = Path(ogg.wav_ru_path)
-            print(f"{ref_text= }\n{target_text= }\n{ref_audio= }\n{target_audio= }\n\n")
 
             if target_audio.exists():
+                logger.warning(f"file {str(target_audio)} is exists")
                 continue
             if not target_text:
+                logger.warning(f"target_text in id={sub.id} is None")
                 continue
 
             target_audio.parent.mkdir(parents=True, exist_ok=True)
@@ -80,11 +86,10 @@ def convert_audio_with_session(tts_client: TTSClient, limit: Optional[int] = Non
                         gen_text=target_text,
                     ),
                 )
+                target_audio.write_bytes(audio_bytes)
             except Exception as ex:
-                print(type(ex), ex)
+                logger.error(f"{type(ex)}: {ex}")
                 continue
-
-            target_audio.write_bytes(audio_bytes)
 
 
 def convert_audio_en_to_ru(data: dict):
@@ -171,4 +176,3 @@ def convert_audio_en_to_ru(data: dict):
 
 if __name__ == "__main__":
     pass
-

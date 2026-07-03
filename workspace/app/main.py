@@ -1,16 +1,10 @@
-import sys
-from pathlib import Path
-
-
-sys.path.append(str(Path(__file__).parent.parent))
-
-from app.api.tts import convert_audio_with_session
-from app.config import APP_PATH
-from app.utils.generate_tree import save_structure
+from config import logger
+from app.api.tts import convert_audio_with_remote_session
 
 
 if __name__ == "__main__":
-    pass
+    logger.info("----------------------START NEW SESSION----------------------")
 
-    convert_audio_with_session(limit=100)
-    # save_structure(APP_PATH)
+    convert_audio_with_remote_session(limit=1)
+
+    logger.info("----------------------END SESSION----------------------")

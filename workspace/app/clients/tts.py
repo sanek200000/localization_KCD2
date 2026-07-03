@@ -1,5 +1,6 @@
 from pathlib import Path
 
+from loguru import logger
 import requests
 
 from app.config import SS
@@ -106,8 +107,10 @@ class TTSClient:
                     timeout=self._timeout,
                 )
         except requests.ConnectionError as ex:
+            logger.error(TTSConnectionError(str(ex)))
             raise TTSConnectionError(str(ex)) from ex
         except requests.Timeout as ex:
+            logger.error(TTSConnectionError(str(ex)))
             raise TTSConnectionError(str(ex)) from ex
 
         if response.status_code != 200:
@@ -115,6 +118,7 @@ class TTSClient:
                 detail = response.json()
             except Exception:
                 detail = response.text
+            logger.error(TTSServerError(f"{response.status_code}: {detail}"))
             raise TTSServerError(f"{response.status_code}: {detail}")
 
         return response.content

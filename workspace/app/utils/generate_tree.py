@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from app.config import TEMP_PATH
+from app.config import APP_PATH, TEMP_PATH
 
 IGNORE_LIST = {
     "__pycache__",
@@ -60,7 +60,7 @@ def build_tree(dir_path: Path, prefix: str = "") -> list:
     return tree_lines
 
 
-def save_structure(root_dir: Path):
+def save_structure(root_dir: Path = APP_PATH):
     """
     Сохраняет структуру проекта в текстовый файл.
 
