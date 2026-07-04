@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Optional
 
 from pydantic import BaseModel, Field
@@ -23,6 +22,7 @@ class TTSRequestDTO(BaseModel):
             референс.
         seed (Optional[int]): Seed для воспроизводимости генерации.
     """
+
     ref_text: str
     gen_text: str
 
@@ -41,5 +41,5 @@ class TTSResponseDTO(BaseModel):
     Attributes:
         audio (bytes): Сгенерированное аудио.
     """
-    audio: bytes
 
+    audio: bytes

@@ -1,10 +1,14 @@
+from math import log
+
+import requests
 from pathlib import Path
+from time import sleep
 
 from loguru import logger
-import requests
 
 from app.config import SS
 from app.exceptions.tts import TTSConnectionError, TTSServerError
+from app.schemas.jobs import JobStatus, JobCreateResponseDTO, JobStatusResponseDTO
 from app.schemas.tts import TTSRequestDTO
 
 
@@ -68,29 +72,50 @@ class TTSClient:
         self.close()
 
     def generate(self, ref_audio: Path, request: TTSRequestDTO) -> bytes:
-        """
-        Отправляет запрос на TTS-сервер для генерации аудио.
+        poll_interval = 10
+        max_connection_errors = 3
+        connection_errors = 0
 
-        Использует референсное аудио и параметры текста для генерации
-        синтезированной речи.
+        job_id = self._create_job(ref_audio, request)
+        logger.info(f"Created TTS job: {job_id}")
 
-        Args:
-            ref_audio (Path): Путь к WAV-файлу референсного аудио.
-            request (TTSRequestDTO): DTO с параметрами генерации речи
-                (референсный текст, целевой текст и др.).
+        while True:
+            try:
+                status = self._get_job_status(job_id)
+                connection_errors = 0
+            except TTSConnectionError:
+                connection_errors += 1
+                logger.warning(
+                    f"Unable to get status for job '{job_id}' "
+                    f"({connection_errors}/{max_connection_errors})"
+                )
 
-        Returns:
-            bytes: Сгенерированный аудиофайл в бинарном формате.
+                if connection_errors >= max_connection_errors:
+                    raise
 
-        Raises:
-            TTSConnectionError: Ошибка сетевого соединения или таймаута.
-            TTSServerError: Некорректный ответ сервера (status != 200).
+                sleep(poll_interval)
+                continue
+            except Exception as ex:
+                logger.error(f"{type(ex)} {ex}")
 
-        Notes:
-            - Отправляет multipart/form-data запрос на endpoint `/tts`.
-            - Поля DTO сериализуются в строковый формат.
-            - При ошибке сервера пытается извлечь JSON `detail`.
-        """
+            logger.debug(
+                f"Job '{job_id}': "
+                f"{status.status}, "
+                f"attempt={status.current_attempt}/{status.max_attempts}, "
+                f"similarity={status.similarity}"
+            )
+
+            if status.status is JobStatus.COMPLETED:
+                return self._download_reault(job_id)
+
+            if status.status is JobStatus.FAILED:
+                detail = status.error or "TTS generation failed"
+                logger.error(detail)
+                raise TTSServerError(detail)
+
+            sleep(poll_interval)
+
+    def _create_job(self, ref_audio: Path, request: TTSRequestDTO) -> str:
         try:
             with ref_audio.open("rb") as file:
                 files = {"ref_audio": (ref_audio.name, file, "audio/wav")}
@@ -121,4 +146,32 @@ class TTSClient:
             logger.error(TTSServerError(f"{response.status_code}: {detail}"))
             raise TTSServerError(f"{response.status_code}: {detail}")
 
-        return response.content
+        job = JobCreateResponseDTO.model_validate(response.json())
+
+        return job.id
+
+    def _get_job_status(self, job_id: str) -> JobStatusResponseDTO:
+        try:
+            response = self._session.get(
+                f"{self._server_url}/f5tts/job/{job_id}",
+                timeout=30,
+            )
+            return JobStatusResponseDTO.model_validate(response.json())
+        except Exception as ex:
+            logger.error(f"{type(ex)} {ex}")
+            raise
+
+    def _download_reault(self, job_id: str) -> bytes:
+        try:
+            response = self._session.get(
+                f"{self._server_url}/f5tts/job/{job_id}/result",
+                timeout=30,
+            )
+
+            result = response.content
+            if isinstance(result, bytes):
+                return result
+
+            logger.warning(f"Failed generation: {result}")
+        except Exception as ex:
+            logger.error(f"{type(ex)} {ex}")

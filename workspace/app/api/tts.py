@@ -1,12 +1,13 @@
 from pathlib import Path
 from typing import Optional
 
+from helper import append_txt
 from loguru import logger
+
 from app.api.dependencies import inject_tts
 from app.api.subs import get_all_subs_iter
 from app.clients.tts import TTSClient
 from app.schemas.tts import TTSRequestDTO
-from helper import load_marshal, append_txt
 
 DB = Path("./temp/db_with_pathes_and_accent.bin")
 SAFETENSORS_MISHA = "./models/F5-TTS_RUSSIAN_misha/F5TTS_v1_Base_accent_tune/model_last_inference.safetensors"
@@ -70,7 +71,7 @@ def convert_audio_with_remote_session(
             target_audio = Path(ogg.wav_ru_path)
 
             if target_audio.exists():
-                logger.warning(f"file {str(target_audio)} is exists")
+                # logger.warning(f"file {str(target_audio)} is exists")
                 continue
             if not target_text:
                 logger.warning(f"target_text in id={sub.id} is None")
@@ -86,7 +87,12 @@ def convert_audio_with_remote_session(
                         gen_text=target_text,
                     ),
                 )
-                target_audio.write_bytes(audio_bytes)
+
+                if audio_bytes:
+                    target_audio.write_bytes(audio_bytes)
+                    logger.info(
+                        f"From en audio'{ref_audio}' made ru audio '{target_audio}'"
+                    )
             except Exception as ex:
                 logger.error(f"{type(ex)}: {ex}")
                 continue
@@ -133,8 +139,8 @@ def convert_audio_en_to_ru(data: dict):
           подходящий элемент словаря.
         - Ключ `"nothing"` пропускается.
     """
-    from f5_tts.api import F5TTS
     import soundfile as sf
+    from f5_tts.api import F5TTS
 
     DEBUG = 0
     tts = F5TTS(
