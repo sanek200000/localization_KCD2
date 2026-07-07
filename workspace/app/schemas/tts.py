@@ -31,6 +31,25 @@ class TTSRequestDTO(BaseModel):
     match_duration: bool = True
     seed: Optional[int] = None
 
+    def format_log(self, ref_audio: str, target_audio: str) -> str:
+        return (
+            "\n"
+            "========================================================\n"
+            "Request\n"
+            "--------------------------------------------------------\n"
+            f"ref_text : {self.ref_text}\n"
+            f"gen_text : {self.gen_text}\n"
+            f"speed    : {self.speed:.2f}\n"
+            f"seed     : {self.seed}\n"
+            "\n"
+            "Files\n"
+            "--------------------------------------------------------\n"
+            f"ref_audio : {ref_audio} \n"
+            f"target_audio  : {target_audio} \n"
+            "========================================================"
+            "\n"
+        )
+
 
 class TTSResponseDTO(BaseModel):
     """

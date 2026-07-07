@@ -12,11 +12,21 @@ LOCALIZATION_PATH = BASE_DIR.joinpath("localization/")
 TEMP_PATH = BASE_DIR.joinpath("temp/")
 GAME_FOLDER = BASE_DIR.joinpath("kcd2/")
 
+
+def should_rotate_on_start(message, file):
+    if not hasattr(should_rotate_on_start, "has_run"):
+        should_rotate_on_start.has_run = True
+        return True
+    return False
+
+
 logger.remove()
+logger.add(sys.stdout)
 logger.add(
     APP_PATH.joinpath("logs/kcd2_localization_client.log"),
-    rotation="100 minute",
-    retention=2,
+    rotation=should_rotate_on_start,
+    retention=10,
+    encoding="utf-8",
 )
 
 

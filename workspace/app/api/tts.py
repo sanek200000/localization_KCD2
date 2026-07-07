@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional
 
+
 from helper import append_txt
 from loguru import logger
 
@@ -79,23 +80,23 @@ def convert_audio_with_remote_session(
 
             target_audio.parent.mkdir(parents=True, exist_ok=True)
 
+            request = TTSRequestDTO(
+                ref_text=ref_text,
+                gen_text=target_text,
+            )
             try:
-                audio_bytes = tts_client.generate(
-                    ref_audio=ref_audio,
-                    request=TTSRequestDTO(
-                        ref_text=ref_text,
-                        gen_text=target_text,
-                    ),
-                )
-
-                if audio_bytes:
-                    target_audio.write_bytes(audio_bytes)
-                    logger.info(
-                        f"From en audio'{ref_audio}' made ru audio '{target_audio}'"
-                    )
+                audio_bytes = tts_client.generate(ref_audio=ref_audio, request=request)
             except Exception as ex:
                 logger.error(f"{type(ex)}: {ex}")
                 continue
+
+            if audio_bytes:
+                target_audio.write_bytes(audio_bytes)
+                logger.info(request.format_log(str(ref_audio), str(target_audio)))
+            else:
+                logger.warning(
+                    f"Empty response with request: {request.format_log(str(ref_audio), str(target_audio))}"
+                )
 
 
 def convert_audio_en_to_ru(data: dict):

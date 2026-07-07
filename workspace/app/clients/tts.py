@@ -72,7 +72,7 @@ class TTSClient:
         self.close()
 
     def generate(self, ref_audio: Path, request: TTSRequestDTO) -> bytes:
-        poll_interval = 10
+        poll_interval = 5
         max_connection_errors = 3
         connection_errors = 0
 
