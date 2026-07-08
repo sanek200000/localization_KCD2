@@ -8,7 +8,7 @@ from pydantic import BaseModel
 class JobStatus(StrEnum):
     QUEUED = "queued"
     PROGRESSING = "progressing"
-    COMPLETED = "comleted"
+    COMPLETED = "completed"
     FAILED = "failed"
 
 

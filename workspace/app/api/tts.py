@@ -61,9 +61,10 @@ def convert_audio_with_remote_session(
 
     data = get_all_subs_iter(batch_size=100)
 
-    for i, sub in enumerate(data):
+    for i, sub in enumerate(data, start=1):
         if limit and i >= limit:
             break
+        logger.info(f"Sun #{i}")
 
         ref_text = sub.en_sub
         target_text = sub.ru_accent
