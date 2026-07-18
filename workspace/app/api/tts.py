@@ -18,9 +18,21 @@ KEYS_WITHOUT_RUSUB = Path("./temp/keys_without_rusub.txt").resolve()
 
 
 @inject_tts
+def get_models(tts_client: TTSClient):
+    return tts_client.get_models()
+
+
+@inject_tts
+def load_model(tts_client: TTSClient, id: int):
+    return tts_client.change_model(model_id=id)
+
+
+@inject_tts
 def convert_audio_with_remote_session(
     tts_client: TTSClient,
     limit: Optional[int] = None,
+    start_with: Optional[int] = None,
+    change_dir: Optional[str] = None,
 ):
     """
     Генерирует русскую озвучку для субтитров с использованием TTS-клиента.
@@ -64,13 +76,22 @@ def convert_audio_with_remote_session(
     for i, sub in enumerate(data, start=1):
         if limit and i >= limit:
             break
-        logger.info(f"Sun #{i}")
+        if start_with and i < start_with:
+            continue
+        logger.info(f"Sub #{i}")
 
         ref_text = sub.en_sub
         target_text = sub.ru_accent
         for ogg in sub.oggs:
             ref_audio = Path(ogg.wav_en_path)
             target_audio = Path(ogg.wav_ru_path)
+
+            if change_dir:
+                new_parts = [
+                    f"ru_voice_wav_{change_dir}" if part == "ru_voice_wav" else part
+                    for part in target_audio.parts
+                ]
+                target_audio = Path(*new_parts)
 
             if target_audio.exists():
                 # logger.warning(f"file {str(target_audio)} is exists")

@@ -22,8 +22,8 @@ services:
       - .env
     tty: true
     stdin_open: true
-    command: poetry run python app/main.py
-    # command: ["zsh"]
+    # command: poetry run python app/main.py
+    command: ["zsh"]
 
   # translator:
   #   container_name: python_localization_KCD2_translator

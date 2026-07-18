@@ -71,6 +71,30 @@ class TTSClient:
         """
         self.close()
 
+    def get_models(self):
+        try:
+            response = self._session.get(
+                f"{self._server_url}/f5tts/models",
+                timeout=30,
+            )
+            return response.json()
+        except Exception as ex:
+            logger.error(f"{type(ex)} {ex}")
+            raise
+
+    def change_model(self, model_id: int):
+        try:
+            response = self._session.post(
+                f"{self._server_url}/f5tts/model/load/{model_id}",
+                timeout=30,
+            )
+            logger.info(response.json())
+        except Exception as ex:
+            logger.error(f"{type(ex)} {ex}")
+            raise
+
+        return response.json()
+
     def generate(self, ref_audio: Path, request: TTSRequestDTO) -> bytes:
         poll_interval = 5
         max_connection_errors = 3
