@@ -18,6 +18,8 @@ services:
       # - /mnt/kcd2:/workspace/kcd2:ro
       - sqlite_data:/db
       - dev-home:/home/dev
+    ports:
+      - "9090:8080"
     env_file:
       - .env
     tty: true
@@ -37,4 +39,3 @@ services:
 volumes:
   dev-home:
   sqlite_data:
-
