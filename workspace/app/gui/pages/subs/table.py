@@ -1,49 +1,46 @@
 from nicegui import ui
 
+from app.gui.components.subs.table import SubsTable
+from app.gui.components.subs.toolbar import SubsToolbar
 from app.gui.layout import page_layaut
+from app.gui.services.subs import GuiSubsService
 
 
-def subs_page():
+def subs_table_page():
+    service = GuiSubsService()
+    table = None
+
+    def open_sub(sub_id: int):
+        ui.navigate.to(f"/subs/{sub_id}")
+
+    def load(search: str = ""):
+        rows = list()
+
+        for sub in service.get_page(offset=0, limit=100, search=search):
+            en_audio = any(ogg.wav_en_path for ogg in sub.oggs)
+            ru_audio = any(ogg.wav_ru_path for ogg in sub.oggs)
+
+            rows.append(
+                {
+                    "id": sub.id,
+                    "key": sub.key,
+                    "en_sub": sub.en_sub,
+                    "ru_sub": sub.ru_sub,
+                    "accent": sub.ru_accent,
+                    "en_audio": "✔" if en_audio else "",
+                    "ru_audio": "✔" if ru_audio else "",
+                }
+            )
+
+        table.set_rows(rows)
+
     def content():
-        ui.label("Subtitles").classes("text-h4")
+        nonlocal table
 
-        search = ui.input(
-            label="Search",
-            placeholder="Enter text...",
-        ).classes("w-full")
+        SubsToolbar(on_search=load, on_open_id=open_sub)
 
-        grid = ui.aggrid(
-            {
-                "columnDefs": [
-                    {
-                        "field": "id",
-                        "width": 90,
-                    },
-                    {
-                        "field": "en_sub",
-                        "flex": 3,
-                    },
-                    {
-                        "field": "ru_sub",
-                        "flex": 3,
-                    },
-                    {
-                        "field": "ru_accent",
-                        "flex": 3,
-                    },
-                ],
-                "rowData": [],
-                "pagination": True,
-                "paginationPageSize": 100,
-                "animateRows": True,
-            }
-        ).classes("w-full")
-
-        async def load():
-            rows = list()
-            grid.options["rowData"] = rows
-            grid.update()
-
-        ui.button("Refresh", on_click=load)
+        ui.separator()
+        table = SubsTable(on_open=open_sub)
+        load()
 
     page_layaut(content)
