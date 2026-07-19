@@ -1,6 +1,7 @@
 from collections.abc import Iterator
+from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
 from app.models.subs import SubsOrm
@@ -93,3 +94,32 @@ class SubsRepository(BaseRepository):
             options=(selectinload(self.model.oggs),),
             batch_size=batch_size,
         )
+
+    def get_page_with_oggs(
+        self,
+        *,
+        offset: int,
+        limit: int,
+        search: Optional[str] = None,
+    ):
+        stmt = (
+            select(self.model)
+            .options(selectinload(self.model.oggs))
+            .offset(offset)
+            .limit(limit)
+        )
+
+        if search:
+            stmt = stmt.where(self.model.key.constaints(search))
+
+        result = self.session.scalars(stmt)
+
+        return [self.mapper.map_to_domain_entity(obj) for obj in result]
+
+    def count(self, search: Optional[str] = None):
+        stmt = select(func.count()).select_from(self.model)
+
+        if search:
+            stmt = stmt.where(self.model.key.containts(search))
+
+        return self.session.scalar(stmt)
