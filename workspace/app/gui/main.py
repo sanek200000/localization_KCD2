@@ -41,5 +41,5 @@ def settings():
 ui.run(
     title="KCD2 localization",
     favicon="🎙️",
-    reload=False,
+    reload=True,
 )

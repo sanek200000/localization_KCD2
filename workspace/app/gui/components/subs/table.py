@@ -42,7 +42,7 @@ class SubsTable:
                 "paginationPageSize": 100,
                 "domLayout": "normal",
             }
-        ).classes("w-full h-full")
+        ).classes("w-full ")  # TODO: add h-full
 
         self.grid.on("cellDubleClicked", lambda e: on_open(e.args["data"]["id"]))
 
