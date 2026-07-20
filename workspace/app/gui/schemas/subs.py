@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class SubtitlesState(BaseModel):
+class SubtitlesStateDTO(BaseModel):
     page: int = 0
     page_size: int = 100
 

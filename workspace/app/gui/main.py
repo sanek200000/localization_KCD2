@@ -42,4 +42,5 @@ ui.run(
     title="KCD2 localization",
     favicon="🎙️",
     reload=True,
+    dark=True,
 )

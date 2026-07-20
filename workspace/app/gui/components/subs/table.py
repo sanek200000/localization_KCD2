@@ -9,18 +9,22 @@ class SubsTable:
             {
                 "columnDefs": [
                     {
+                        "headerName": "id",
                         "field": "id",
-                        "width": 90,
+                        "width": 60,
                     },
                     {
+                        "headerName": "key",
                         "field": "key",
                         "width": 180,
                     },
                     {
+                        "headerName": "English",
                         "field": "en_sub",
                         "flex": 2,
                     },
                     {
+                        "headerName": "Russian",
                         "field": "ru_sub",
                         "flex": 2,
                     },
@@ -29,21 +33,30 @@ class SubsTable:
                         "flex": 2,
                     },
                     {
-                        "field": "en_audio",
+                        "headerName": "Audio count",
+                        "field": "audio_count",
                         "width": 80,
                     },
-                    {
-                        "field": "ru_audio",
-                        "width": 80,
-                    },
+                    # {
+                    #     "field": "en_audio",
+                    #     "width": 80,
+                    # },
+                    # {
+                    #     "field": "ru_audio",
+                    #     "width": 80,
+                    # },
                 ],
                 "rowData": [],
-                "pagination": True,
-                "paginationPageSize": 100,
-                "domLayout": "normal",
+                "animateRows": False,
+                "pagination": False,
+                # "paginationPageSize": 100,
+                "domLayout": "autoHeight",
+                "rowSelection": "single",
             }
-        ).classes("w-full ")  # TODO: add h-full
+        )
 
+        self.grid.classes("w-full flex-grow h-full")  # TODO: add h-full
+        # self.grid.style("height: unset")
         self.grid.on("cellDubleClicked", lambda e: on_open(e.args["data"]["id"]))
 
     def set_rows(self, rows):

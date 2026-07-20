@@ -51,6 +51,7 @@ class SubPatchDTO(BaseModel):
         ru_sub (Optional[str]): Обновленный перевод на русский язык.
         ru_accent (Optional[str]): Обновленный русский текст с ударениями.
     """
+
     en_sub: Optional[str] = None
     ru_sub: Optional[str] = None
     ru_accent: Optional[str] = None

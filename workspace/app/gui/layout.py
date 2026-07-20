@@ -10,7 +10,7 @@ def page_layaut(content: Callable[[], None]) -> None:
     create_header()
 
     with ui.row().classes("w-full no-wrap"):
-        with ui.column().classes("w-64 bg-grey-2 h-screen"):
+        with ui.column().classes("w-64 bg-grey-0 h-screen"):
             create_sidebar()
 
         with ui.column().classes("flex-grow h-full p-4"):
