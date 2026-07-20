@@ -3,10 +3,10 @@ from pathlib import Path
 
 from nicegui import ui
 
-from app.gui.pages.subs.table import subs_table_page
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
+from app.gui.pages.subs.table import subs_table_page
 from app.gui.pages.home import home_page
 from app.gui.pages.oggs import oggs_page
 from app.gui.pages.tts import tts_page

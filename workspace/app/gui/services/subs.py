@@ -13,15 +13,18 @@ from app.api.subs import get_all_with_limit, get_db_count, get_sub
 
 
 class GuiSubsService:
-    def get_page(self, *, offset: int, limit: int, search: str = ""):
+    @staticmethod
+    def get_page(*, offset: int, limit: int, search: str = ""):
         return get_all_with_limit(
             offset=offset,
             limit=limit,
             search=search or None,
         )
 
-    def count(self, search: str = ""):
+    @staticmethod
+    def count(search: str = ""):
         return get_db_count(search or None)
 
-    def get(self, sub_id: int):
+    @staticmethod
+    def get(sub_id: int):
         return get_sub(id=sub_id)

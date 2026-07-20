@@ -40,8 +40,9 @@ class SubsTable:
                 "rowData": [],
                 "pagination": True,
                 "paginationPageSize": 100,
+                "domLayout": "normal",
             }
-        ).classes("w-full")
+        ).classes("w-full h-full")
 
         self.grid.on("cellDubleClicked", lambda e: on_open(e.args["data"]["id"]))
 

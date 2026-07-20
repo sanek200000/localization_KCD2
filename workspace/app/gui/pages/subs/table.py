@@ -7,7 +7,6 @@ from app.gui.services.subs import GuiSubsService
 
 
 def subs_table_page():
-    service = GuiSubsService()
     table = None
 
     def open_sub(sub_id: int):
@@ -16,7 +15,7 @@ def subs_table_page():
     def load(search: str = ""):
         rows = list()
 
-        for sub in service.get_page(offset=0, limit=100, search=search):
+        for sub in GuiSubsService.get_page(offset=0, limit=100, search=search):
             en_audio = any(ogg.wav_en_path for ogg in sub.oggs)
             ru_audio = any(ogg.wav_ru_path for ogg in sub.oggs)
 

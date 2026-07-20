@@ -13,5 +13,5 @@ def page_layaut(content: Callable[[], None]) -> None:
         with ui.column().classes("w-64 bg-grey-2 h-screen"):
             create_sidebar()
 
-        with ui.column().classes("flex-grow p-4"):
+        with ui.column().classes("flex-grow h-full p-4"):
             content()
