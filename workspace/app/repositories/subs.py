@@ -116,10 +116,3 @@ class SubsRepository(BaseRepository):
 
         return [self.mapper.map_to_domain_entity(obj) for obj in result]
 
-    def count(self, search: Optional[str] = None):
-        stmt = select(func.count()).select_from(self.model)
-
-        if search:
-            stmt = stmt.where(self.model.key.containts(search))
-
-        return self.session.scalar(stmt)

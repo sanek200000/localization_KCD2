@@ -4,6 +4,16 @@ from app.utils.db_manager import DBManager
 
 
 @inject_db
+def get_all_with_limit(db: DBManager, offset: int, limit: int, search: str = ""):
+    return db.subs.get_page_with_oggs(offset=offset, limit=limit, search=search or None)
+
+
+@inject_db
+def get_db_count(db: DBManager, search: str = ""):
+    return db.subs.get_count(search or None)
+
+
+@inject_db
 def get_all_subs_iter(db: DBManager, batch_size: int):
     """
     Возвращает итератор по всем субтитрам с загруженными OGG-связями.

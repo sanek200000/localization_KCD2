@@ -1,8 +1,8 @@
 from collections.abc import Iterator
-from typing import Type
+from typing import Optional, Type
 
 from pydantic import BaseModel
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import delete, func, insert, select, update
 from sqlalchemy.orm import Session
 
 from app.db import Base
@@ -156,6 +156,14 @@ class BaseRepository:
         query = select(self.model).filter_by(**filter_by)
         result = self.session.execute(query)
         return result.scalars().one()
+
+    def get_count(self, search: Optional[str] = None):
+        stmt = select(func.count()).select_from(self.model)
+
+        if search:
+            stmt = stmt.where(self.model.key.containts(search))
+
+        return self.session.scalar(stmt)
 
     def add(self, data: BaseModel):
         """
