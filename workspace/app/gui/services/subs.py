@@ -28,4 +28,4 @@ class GuiSubsService:
 
     @staticmethod
     def get(sub_id: int) -> SubDTO:
-        return get_sub(id=sub_id)
+        return get_sub(sub_id=sub_id)
