@@ -6,7 +6,7 @@ from app.gui.components.header import create_header
 from app.gui.components.sidebar import create_sidebar
 
 
-def page_layaut(content: Callable[[], None]) -> None:
+def page_layout(content: Callable[[], None]) -> None:
     create_header()
 
     with ui.row().classes("w-full no-wrap"):

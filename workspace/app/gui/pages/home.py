@@ -1,7 +1,6 @@
-
 from nicegui import ui
 
-from app.gui.layout import page_layaut
+from app.gui.layout import page_layout
 
 
 def home_page():
@@ -10,4 +9,4 @@ def home_page():
         ui.separator()
         ui.label("Wellcome to KCD2 localization")
 
-    page_layaut(content)
+    page_layout(content)

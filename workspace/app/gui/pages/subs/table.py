@@ -4,7 +4,7 @@ from app.gui.components.pager import Pager
 from app.gui.components.subs.grid_mapper import to_grid_row
 from app.gui.components.subs.table import SubsTable
 from app.gui.components.subs.toolbar import SubsToolbar
-from app.gui.layout import page_layaut
+from app.gui.layout import page_layout
 from app.gui.services.subs import GuiSubsService
 
 
@@ -72,4 +72,4 @@ def subs_table_page():
             pager.set_total(service.count())
             pager.emit()
 
-    page_layaut(content)
+    page_layout(content)
