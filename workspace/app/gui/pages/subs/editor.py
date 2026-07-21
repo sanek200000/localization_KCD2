@@ -1,9 +1,32 @@
 from nicegui import ui
 from pathlib import Path
 
+from app.api.subs import delete_sub, patch_sub
 from app.gui.services.subs import GuiSubsService
 from app.gui.layout import page_layout
 from app.schemas.oggs import OggDTO
+from app.schemas.subs import SubPatchDTO
+
+
+def save():
+    patch_sub(
+        sub_id=sub.id,
+        data=SubPatchDTO(ru_sub=ru_sub.value, ru_accent=ru_accent.value),
+    )
+    ui.notify("Изменения сохранены", type="positive")
+
+
+def delete():
+    delete_sub(sub_id=sub.id)
+    ui.notify("Запись удалена", type="positive")
+    ui.navigate.to("/subs")
+
+
+def delete_wav(path: str):
+    file = Path(path)
+    file.unlink(missing_ok=True)
+    ui.notify("File deleted", type="positive")
+    ui.navigate.to(f"/subs/{sub.id}")
 
 
 def create_voice_block(ogg: OggDTO):
@@ -18,7 +41,7 @@ def create_voice_block(ogg: OggDTO):
         if Path(ogg.wav_ru_path).exists():
             ui.label("Russian")
             ui.audio(ogg.wav_ru_path).classes("w-full")
-            ui.button("Delete WAV")
+            ui.button("Delete WAV", on_click=lambda p=ogg.wav_ru_path: delete_wav(p))
 
 
 def subs_editor_page(sub_id: int):
@@ -48,7 +71,17 @@ def subs_editor_page(sub_id: int):
             ui.separator()
 
             with ui.row():
-                ui.button("")
-                ui.button("").props("color=negative")
+                ui.button("💾 Save", on_click=save)
+                ui.button("🗑 Delete subtitle", on_click=dialog.open).props(
+                    "color=negative"
+                )
+
+        with ui.dialog() as dialog, ui.card():
+            ui.label("Delete subtitle?")
+            with ui.row():
+                ui.button("NO", on_click=dialog.close)
+                ui.button("YES", on_click=lambda: (dialog.close(), delete())).props(
+                    "color=negative"
+                )
 
     page_layout(content)
