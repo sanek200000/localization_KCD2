@@ -53,6 +53,6 @@ class SubsTable:
             "cellDoubleClicked", lambda e: ui.notify(str(e.args["data"]["id"]))
         )
 
-    def set_rows(self, rows):
+    def set_rows(self, rows: list):
         self.grid.options["rowData"] = rows
         self.grid.update()

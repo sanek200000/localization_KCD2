@@ -6,6 +6,7 @@ from app.gui.services.subs import GuiSubsService
 from app.gui.layout import page_layout
 from app.schemas.oggs import OggDTO
 from app.schemas.subs import SubPatchDTO
+from app.gui.state.subs import navigation_state as ns
 
 
 def save():
@@ -46,6 +47,34 @@ def create_voice_block(ogg: OggDTO):
 
 def subs_editor_page(sub_id: int):
     sub = GuiSubsService.get(sub_id)
+    ids = ns.ids
+    currnt_index = ids.index(sub.id)
+
+    def open_prev():
+        if currnt_index > 0:
+            ui.navigate.to(f"/subs/{ids[currnt_index - 1]}")
+            return
+
+        if ns.page == 0:
+            return
+
+        ns.page -= 1
+        ns.reload()
+
+        ui.navigate.to(f"/subs/{ns.ids[-1]}")
+
+    def open_next():
+        if currnt_index < len(ids) - 1:
+            ui.navigate.to(f"/subs/{ids[currnt_index + 1]}")
+            return
+
+        if ns.page >= ns.pages - 1:
+            return
+
+        ns.page += 1
+        ns.reload()
+
+        ui.navigate.to(f"/subs/{ns.ids[0]}")
 
     def content():
         with ui.dialog() as dialog, ui.card():
@@ -56,9 +85,12 @@ def subs_editor_page(sub_id: int):
                     "color=negative"
                 )
 
-        with ui.row().classes("items-center"):
-            ui.button("← Назад", on_click=lambda: ui.navigate.to("/subs"))
+        with ui.row().classes("w-full items-center justify-between"):
+            prev_button = ui.button("← Предыдущая", on_click=open_prev)
+            prev_button.enabled = currnt_index > 0 or ns.page > 0
             ui.label(f"ID {sub.id}").classes("text-h5")
+            next_button = ui.button("Следующая →", on_click=open_next)
+            next_button.enabled = currnt_index < len(ids) - 1 or ns.page < ns.pages - 1
             ui.separator()
 
             ui.label("KEY:").classes("text-h6")

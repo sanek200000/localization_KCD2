@@ -6,6 +6,7 @@ from app.gui.components.subs.table import SubsTable
 from app.gui.components.subs.toolbar import SubsToolbar
 from app.gui.layout import page_layout
 from app.gui.services.subs import GuiSubsService
+from app.gui.state.subs import navigation_state as ns
 
 
 def subs_table_page():
@@ -26,14 +27,13 @@ def subs_table_page():
         pager.emit()
 
     def load(offset: int, limit: int):
-        rows = [
-            to_grid_row(sub)
-            for sub in service.get_page(
-                offset=offset,
-                limit=limit,
-                search=current_search,
-            )
-        ]
+        ns.page = offset // limit
+        ns.page_size = limit
+        ns.search = current_search
+        ns.reload()
+
+        rows = [to_grid_row(sub) for sub in ns.rows]
+
         table.set_rows(rows)
 
     def content():
