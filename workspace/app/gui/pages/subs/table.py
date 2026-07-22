@@ -26,29 +26,6 @@ def subs_table_page():
         pager.emit()
 
     def load(offset: int, limit: int):
-        # rows = list()
-        #
-        # for sub in service.get_page(
-        #     offset=offset,
-        #     limit=limit,
-        #     search=current_search,
-        # ):
-        #     # en_audio = any(ogg.wav_en_path for ogg in sub.oggs)
-        #     # ru_audio = any(ogg.wav_ru_path for ogg in sub.oggs)
-        #
-        #     rows.append(
-        #         {
-        #             "id": sub.id,
-        #             "key": sub.key,
-        #             "en_sub": sub.en_sub,
-        #             "ru_sub": sub.ru_sub,
-        #             "accent": sub.ru_accent,
-        #             # "en_audio": "✔" if en_audio else "",
-        #             # "ru_audio": "✔" if ru_audio else "",
-        #             "audio_count": len(sub.oggs),
-        #         }
-        #     )
-
         rows = [
             to_grid_row(sub)
             for sub in service.get_page(

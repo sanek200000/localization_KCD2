@@ -37,27 +37,21 @@ class SubsTable:
                         "field": "audio_count",
                         "width": 80,
                     },
-                    # {
-                    #     "field": "en_audio",
-                    #     "width": 80,
-                    # },
-                    # {
-                    #     "field": "ru_audio",
-                    #     "width": 80,
-                    # },
                 ],
                 "rowData": [],
                 "animateRows": False,
                 "pagination": False,
-                # "paginationPageSize": 100,
                 "domLayout": "autoHeight",
                 "rowSelection": "single",
             }
         )
 
-        self.grid.classes("w-full flex-grow h-full")  # TODO: add h-full
+        self.grid.classes("w-full flex-grow h-full")
         # self.grid.style("height: unset")
         self.grid.on("cellDubleClicked", lambda e: on_open(e.args["data"]["id"]))
+        self.grid.on(
+            "cellDoubleClicked", lambda e: ui.notify(str(e.args["data"]["id"]))
+        )
 
     def set_rows(self, rows):
         self.grid.options["rowData"] = rows

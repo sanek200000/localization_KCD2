@@ -61,15 +61,25 @@ def subs_editor_page(sub_id: int):
             ui.label(f"ID {sub.id}").classes("text-h5")
             ui.separator()
 
-            ui.label("KEY").classes("text-h6")
-            ui.input(value=sub.key).props("readonly").classes("w-full")
+            ui.label("KEY:").classes("text-h6")
+            ui.label(sub.key).style("white-space: pre-wrap; font-size:16px")
+            ui.separator()
 
-            ui.label("English").classes("text-h6")
-            ui.textarea(value=sub.en_sub).props("readonly").classes("w-full")
+            ui.label("English:").classes("text-h6")
+            ui.label(sub.en_sub).style("white-space: pre-wrap; font-size:16px")
+            ui.separator()
 
-            ui.label("Russian").classes("text-h6")
-            ru_sub = ui.textarea(value=sub.ru_sub).classes("w-full")
-            ru_accent = ui.textarea(value=sub.ru_accent).classes("w-full")
+            ui.label("Russian:").classes("text-h6")
+            ru_sub = (
+                ui.textarea(value=sub.ru_sub)
+                .props("rows=2")
+                .classes("w-full text-base")
+            )
+            ru_accent = (
+                ui.textarea(value=sub.ru_accent)
+                .props("rows=2")
+                .classes("w-full text-base")
+            )
             ui.separator()
 
             ui.label("Voices").classes("text-h5")
