@@ -155,7 +155,8 @@ class BaseRepository:
         """
         query = select(self.model).filter_by(**filter_by)
         result = self.session.execute(query)
-        return result.scalars().one()
+        orm_obj = result.scalars().one()
+        return self.mapper.map_to_domain_entity(orm_obj)
 
     def get_count(self, search: Optional[str] = None):
         stmt = select(func.count()).select_from(self.model)

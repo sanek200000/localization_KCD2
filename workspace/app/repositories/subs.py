@@ -115,4 +115,3 @@ class SubsRepository(BaseRepository):
         result = self.session.scalars(stmt)
 
         return [self.mapper.map_to_domain_entity(obj) for obj in result]
-

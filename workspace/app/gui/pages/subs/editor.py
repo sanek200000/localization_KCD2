@@ -48,18 +48,26 @@ def subs_editor_page(sub_id: int):
     sub = GuiSubsService.get(sub_id)
 
     def content():
+        with ui.dialog() as dialog, ui.card():
+            ui.label("Delete subtitle?")
+            with ui.row():
+                ui.button("NO", on_click=dialog.close)
+                ui.button("YES", on_click=lambda: (dialog.close(), delete())).props(
+                    "color=negative"
+                )
+
         with ui.row().classes("items-center"):
             ui.button("← Назад", on_click=lambda: ui.navigate.to("/subs"))
             ui.label(f"ID {sub.id}").classes("text-h5")
             ui.separator()
 
-            ui.label("KEY")
+            ui.label("KEY").classes("text-h6")
             ui.input(value=sub.key).props("readonly").classes("w-full")
 
-            ui.label("English")
+            ui.label("English").classes("text-h6")
             ui.textarea(value=sub.en_sub).props("readonly").classes("w-full")
 
-            ui.label("Russian")
+            ui.label("Russian").classes("text-h6")
             ru_sub = ui.textarea(value=sub.ru_sub).classes("w-full")
             ru_accent = ui.textarea(value=sub.ru_accent).classes("w-full")
             ui.separator()
@@ -73,14 +81,6 @@ def subs_editor_page(sub_id: int):
             with ui.row():
                 ui.button("💾 Save", on_click=save)
                 ui.button("🗑 Delete subtitle", on_click=dialog.open).props(
-                    "color=negative"
-                )
-
-        with ui.dialog() as dialog, ui.card():
-            ui.label("Delete subtitle?")
-            with ui.row():
-                ui.button("NO", on_click=dialog.close)
-                ui.button("YES", on_click=lambda: (dialog.close(), delete())).props(
                     "color=negative"
                 )
 
