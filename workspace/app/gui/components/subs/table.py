@@ -48,7 +48,7 @@ class SubsTable:
 
         self.grid.classes("w-full flex-grow h-full")
         # self.grid.style("height: unset")
-        self.grid.on("cellDubleClicked", lambda e: on_open(e.args["data"]["id"]))
+        self.grid.on("cellDoubleClicked", lambda e: on_open(e.args["data"]["id"]))
         self.grid.on(
             "cellDoubleClicked", lambda e: ui.notify(str(e.args["data"]["id"]))
         )
