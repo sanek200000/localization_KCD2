@@ -9,7 +9,7 @@ from app.gui.components.sidebar import create_sidebar
 def page_layout(content: Callable[[], None]) -> None:
     create_header()
 
-    with ui.row().classes("w-full no-wrap"):
+    with ui.row().classes("w-full h-full no-wrap"):
         with ui.column().classes("w-64 bg-grey-0 h-screen"):
             create_sidebar()
 
