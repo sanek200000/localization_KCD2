@@ -37,12 +37,15 @@ def create_voice_block(ogg: OggDTO):
 
         if Path(ogg.wav_en_path).exists():
             ui.label("English")
-            ui.audio(ogg.wav_en_path).classes("w-full")
+            ui.audio(ogg.wav_en_path).classes("w-full").props("autoplay")
 
         if Path(ogg.wav_ru_path).exists():
             ui.label("Russian")
-            ui.audio(ogg.wav_ru_path).classes("w-full")
-            ui.button("Delete WAV", on_click=lambda p=ogg.wav_ru_path: delete_wav(p))
+            with ui.row().classes("w-full items-center"):
+                ui.audio(ogg.wav_ru_path).classes("flex-grow").props("autoplay")
+                ui.button(
+                    "Delete WAV", on_click=lambda p=ogg.wav_ru_path: delete_wav(p)
+                ).props("color=negative")
 
 
 def subs_editor_page(sub_id: int):
@@ -76,7 +79,7 @@ def subs_editor_page(sub_id: int):
 
         ui.navigate.to(f"/subs/{ns.ids[0]}")
 
-    def content():
+    def body():
         with ui.dialog() as dialog, ui.card():
             ui.label("Delete subtitle?")
             with ui.row():
@@ -86,32 +89,31 @@ def subs_editor_page(sub_id: int):
                 )
 
         with ui.row().classes("w-full items-center justify-between"):
-            prev_button = ui.button("← Предыдущая", on_click=open_prev)
-            prev_button.enabled = currnt_index > 0 or ns.page > 0
             ui.label(f"ID {sub.id}").classes("text-h5")
-            next_button = ui.button("Следующая →", on_click=open_next)
-            next_button.enabled = currnt_index < len(ids) - 1 or ns.page < ns.pages - 1
             ui.separator()
 
-            ui.label("KEY:").classes("text-h6")
-            ui.label(sub.key).style("white-space: pre-wrap; font-size:16px")
+            with ui.row().classes("items-center no-wrap"):
+                ui.label("key:").classes("text-h6")
+                ui.label(sub.key).style("white-space: pre-wrap; font-size:16px")
             ui.separator()
 
-            ui.label("English:").classes("text-h6")
-            ui.label(sub.en_sub).style("white-space: pre-wrap; font-size:16px")
+            with ui.row().classes("items-center no-wrap"):
+                ui.label("English:").classes("text-h6")
+                ui.label(sub.en_sub).style("white-space: pre-wrap; font-size:16px")
             ui.separator()
 
-            ui.label("Russian:").classes("text-h6")
-            ru_sub = (
-                ui.textarea(value=sub.ru_sub)
-                .props("rows=2")
-                .classes("w-full text-base")
-            )
-            ru_accent = (
-                ui.textarea(value=sub.ru_accent)
-                .props("rows=2")
-                .classes("w-full text-base")
-            )
+            with ui.row().classes("w-full items-center no-wrap"):
+                ui.label("Russian:").classes("text-h6")
+                ru_sub = (
+                    ui.textarea(value=sub.ru_sub)
+                    .props("rows=2")
+                    .classes("w-full text-base")
+                )
+                ru_accent = (
+                    ui.textarea(value=sub.ru_accent)
+                    .props("rows=2")
+                    .classes("w-full text-base")
+                )
             ui.separator()
 
             ui.label("Voices").classes("text-h5")
@@ -120,10 +122,20 @@ def subs_editor_page(sub_id: int):
 
             ui.separator()
 
-            with ui.row():
+            with ui.row().classes("items-center"):
                 ui.button("💾 Save", on_click=save)
                 ui.button("🗑 Delete subtitle", on_click=dialog.open).props(
                     "color=negative"
                 )
+
+    def content():
+        with ui.row().classes("w-full h-full no-wrap"):
+            prev_button = ui.button("<<", on_click=open_prev)
+            prev_button.enabled = currnt_index > 0 or ns.page > 0
+
+            body()
+
+            next_button = ui.button(">>", on_click=open_next)
+            next_button.enabled = currnt_index < len(ids) - 1 or ns.page < ns.pages - 1
 
     page_layout(content)
