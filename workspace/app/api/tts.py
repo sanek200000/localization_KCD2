@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Optional
 
-
+from app.schemas.subs import SubDTO
 from helper import append_txt
 from loguru import logger
 
@@ -30,6 +30,51 @@ def load_model(tts_client: TTSClient, id: int):
 @inject_tts
 def convert_audio_with_remote_session(
     tts_client: TTSClient,
+    sub: SubDTO,
+    change_dir: Optional[str] = None,
+):
+    ref_text = sub.en_sub
+    target_text = sub.ru_accent
+    for ogg in sub.oggs:
+        ref_audio = Path(ogg.wav_en_path)
+        target_audio = Path(ogg.wav_ru_path)
+
+        if change_dir:
+            new_parts = [
+                f"ru_voice_wav_{change_dir}" if part == "ru_voice_wav" else part
+                for part in target_audio.parts
+            ]
+            target_audio = Path(*new_parts)
+
+        if target_audio.exists():
+            # logger.warning(f"file {str(target_audio)} is exists")
+            continue
+        if not target_text:
+            logger.warning(f"target_text in id={sub.id} is None")
+            continue
+
+        target_audio.parent.mkdir(parents=True, exist_ok=True)
+
+        request = TTSRequestDTO(
+            ref_text=ref_text,
+            gen_text=target_text,
+        )
+        try:
+            audio_bytes = tts_client.generate(ref_audio=ref_audio, request=request)
+        except Exception as ex:
+            logger.error(f"{type(ex)}: {ex}")
+            continue
+
+        if audio_bytes:
+            target_audio.write_bytes(audio_bytes)
+            logger.info(request.format_log(str(ref_audio), str(target_audio)))
+        else:
+            logger.warning(
+                f"Empty response with request: {request.format_log(str(ref_audio), str(target_audio))}"
+            )
+
+
+def streaming_conversion(
     limit: Optional[int] = None,
     start_with: Optional[int] = None,
     change_dir: Optional[str] = None,
@@ -80,45 +125,7 @@ def convert_audio_with_remote_session(
             continue
         logger.info(f"Sub #{i}")
 
-        ref_text = sub.en_sub
-        target_text = sub.ru_accent
-        for ogg in sub.oggs:
-            ref_audio = Path(ogg.wav_en_path)
-            target_audio = Path(ogg.wav_ru_path)
-
-            if change_dir:
-                new_parts = [
-                    f"ru_voice_wav_{change_dir}" if part == "ru_voice_wav" else part
-                    for part in target_audio.parts
-                ]
-                target_audio = Path(*new_parts)
-
-            if target_audio.exists():
-                # logger.warning(f"file {str(target_audio)} is exists")
-                continue
-            if not target_text:
-                logger.warning(f"target_text in id={sub.id} is None")
-                continue
-
-            target_audio.parent.mkdir(parents=True, exist_ok=True)
-
-            request = TTSRequestDTO(
-                ref_text=ref_text,
-                gen_text=target_text,
-            )
-            try:
-                audio_bytes = tts_client.generate(ref_audio=ref_audio, request=request)
-            except Exception as ex:
-                logger.error(f"{type(ex)}: {ex}")
-                continue
-
-            if audio_bytes:
-                target_audio.write_bytes(audio_bytes)
-                logger.info(request.format_log(str(ref_audio), str(target_audio)))
-            else:
-                logger.warning(
-                    f"Empty response with request: {request.format_log(str(ref_audio), str(target_audio))}"
-                )
+        convert_audio_with_remote_session(sub=sub, change_dir=change_dir)
 
 
 def convert_audio_en_to_ru(data: dict):

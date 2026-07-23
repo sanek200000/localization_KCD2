@@ -32,7 +32,7 @@ class BaseRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def get_iter(self, batch_size: int, options=tuple()) -> Iterator:
+    def get_iter(self, batch_size: int, options=tuple()) -> Iterator[Type[BaseModel]]:
         """
         Возвращает итератор по объектам репозитория с пакетной загрузкой.
 

@@ -2,6 +2,7 @@ from nicegui import ui
 from pathlib import Path
 
 from app.api.subs import delete_sub, patch_sub
+from app.api.tts import convert_audio_with_remote_session
 from app.gui.components.audio_playlist import AudioPlaylist
 from app.gui.services.subs import GuiSubsService
 from app.gui.layout import page_layout
@@ -30,13 +31,18 @@ class SubsEditorPage:
     def delete(self):
         delete_sub(sub_id=self.sub.id)
         ui.notify("Запись удалена", type="positive")
-        ui.navigate.to("/subs")
+        self.ids.pop(self.sub.id)
+        ui.navigate.to(f"/subs/{self.ids[self.current_index]}")
 
     def delete_wav(self, path: str):
         file = Path(path)
         file.unlink(missing_ok=True)
         ui.notify("File deleted", type="positive")
         ui.navigate.to(f"/subs/{self.sub.id}")
+
+    def voice_render(self, path):
+        self.delete_wav(path)
+        convert_audio_with_remote_session(sub=self.sub)
 
     def open_prev(self):
         if self.current_index > 0:
@@ -56,22 +62,26 @@ class SubsEditorPage:
             ui.label(ogg.name).classes("text-h6")
             ui.separator()
 
+            ui.label("English")
             if Path(ogg.wav_en_path).exists():
-                ui.label("English")
                 en_voice = ui.audio(ogg.wav_en_path).classes("w-full")
-
                 self.playlist.add(en_voice)
 
-            if Path(ogg.wav_ru_path).exists():
-                ui.label("Russian")
-                with ui.row().classes("w-full items-center"):
+            ui.label("Russian")
+            with ui.row().classes("w-full items-center"):
+                if Path(ogg.wav_ru_path).exists():
                     ru_voice = ui.audio(ogg.wav_ru_path).classes("flex-grow")
+                    self.playlist.add(ru_voice)
+
                     ui.button(
                         "Delete WAV",
                         on_click=lambda p=ogg.wav_ru_path: self.delete_wav(p),
                     ).props("color=negative")
 
-                    self.playlist.add(ru_voice)
+                ui.button(
+                    "Render",
+                    on_click=lambda p=ogg.wav_ru_path: self.voice_render(p),
+                ).props("color=green")
 
     def open_next(self):
         if self.current_index < len(self.ids) - 1:
@@ -104,27 +114,29 @@ class SubsEditorPage:
             ui.separator()
 
             with ui.row().classes("items-center no-wrap"):
-                ui.label("key:").classes("text-h6")
+                ui.label("key:").classes("text-h6").style("min-width: 100px")
                 ui.label(self.sub.key).style("white-space: pre-wrap; font-size:16px")
             ui.separator()
 
             with ui.row().classes("items-center no-wrap"):
-                ui.label("English:").classes("text-h6")
+                ui.label("English:").classes("text-h6").style("min-width: 100px")
                 ui.label(self.sub.en_sub).style("white-space: pre-wrap; font-size:16px")
             ui.separator()
 
-            with ui.row().classes("w-full no-wrap"):
-                ui.label("Russian:").classes("text-h6")
-                self.ru_sub = (
-                    ui.textarea(value=self.sub.ru_sub)
-                    .props("rows=2")
-                    .classes("w-full text-base")
-                )
-                self.ru_accent = (
-                    ui.textarea(value=self.sub.ru_accent)
-                    .props("rows=2")
-                    .classes("w-full text-base")
-                )
+            with ui.row().classes("w-full items-start"):
+                ui.label("Russian:").classes("text-h6").style("min-width: 100px")
+
+                with ui.column().classes("flex-grow gap-2"):
+                    self.ru_sub = (
+                        ui.textarea(value=self.sub.ru_sub)
+                        .props("rows=2")
+                        .classes("w-full text-base")
+                    )
+                    self.ru_accent = (
+                        ui.textarea(value=self.sub.ru_accent)
+                        .props("rows=2")
+                        .classes("w-full text-base")
+                    )
             ui.separator()
 
             ui.label("Voices").classes("text-h5")
@@ -140,18 +152,21 @@ class SubsEditorPage:
                 )
 
     def content(self):
-        with ui.row().classes("w-full h-full no-wrap"):
-            prev_button = ui.button("<<", on_click=self.open_prev).classes("h-full")
-            prev_button.enabled = self.current_index > 0 or ns.page > 0
+        with ui.row().classes("w-full items-stretch no-wrap"):
+            with ui.column().classes("justify-center"):
+                prev_button = ui.button("<<", on_click=self.open_prev).classes("h-full")
+                prev_button.enabled = self.current_index > 0 or ns.page > 0
 
-            self.body()
+            with ui.column().classes("flex-grow"):
+                self.body()
 
-            next_button = ui.button(">>", on_click=self.open_next)
-            next_button.enabled = (
-                self.current_index < len(self.ids) - 1 or ns.page < ns.pages - 1
-            )
+            with ui.column().classes("justify-center"):
+                next_button = ui.button(">>", on_click=self.open_next).classes("h-full")
+                next_button.enabled = (
+                    self.current_index < len(self.ids) - 1 or ns.page < ns.pages - 1
+                )
 
-            ui.timer(0.1, self.playlist.start(), once=True)
+            ui.timer(0.1, self.playlist.start, once=True)
 
     @property
     def render_page(self):

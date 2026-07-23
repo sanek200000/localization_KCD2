@@ -1,6 +1,7 @@
 from collections.abc import Iterator
-from typing import Optional
+from typing import Optional, Type
 
+from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 
@@ -69,7 +70,7 @@ class SubsRepository(BaseRepository):
             options=(selectinload(self.model.oggs),),
         )
 
-    def iter_subs_with_oggs(self, batch_size: int) -> Iterator:
+    def iter_subs_with_oggs(self, batch_size: int) -> Iterator[Type[BaseModel]]:
         """
         Итеративно получает субтитры с предзагруженными OGG-записями
         с использованием пакетной загрузки.

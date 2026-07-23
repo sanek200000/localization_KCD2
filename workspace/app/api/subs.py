@@ -132,7 +132,7 @@ def delete_sub(db: DBManager, sub_id: int):
     Returns:
         None
     """
-    db.subs.delete(sub_id=id)
+    db.subs.delete(id=sub_id)
     db.commit()
 
 
