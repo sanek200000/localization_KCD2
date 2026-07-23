@@ -6,7 +6,7 @@ from nicegui import ui
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from app.gui.pages.subs.editor import subs_editor_page
+from app.gui.pages.subs.editor import SubsEditorPage
 from app.gui.pages.subs.table import subs_table_page
 from app.gui.pages.home import home_page
 from app.gui.pages.oggs import oggs_page
@@ -26,7 +26,7 @@ def subtitles():
 
 @ui.page("/subs/{sub_id:int}")
 def sub_editor(sub_id: int):
-    subs_editor_page(sub_id)
+    SubsEditorPage(sub_id).render_page
 
 
 @ui.page("/oggs")
