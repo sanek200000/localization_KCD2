@@ -2,6 +2,7 @@ from nicegui import ui
 from pathlib import Path
 
 from app.api.subs import delete_sub, patch_sub
+from app.gui.components.audio_playlist import AudioPlaylist
 from app.gui.services.subs import GuiSubsService
 from app.gui.layout import page_layout
 from app.schemas.oggs import OggDTO
@@ -12,6 +13,7 @@ from app.gui.state.subs import navigation_state as ns
 class SubsEditorPage:
     def __init__(self, sub_id: int) -> None:
         self.sub = GuiSubsService.get(sub_id)
+        self.playlist = AudioPlaylist()
         self.ids = ns.ids
         self.current_index = self.ids.index(self.sub.id)
 
@@ -56,16 +58,20 @@ class SubsEditorPage:
 
             if Path(ogg.wav_en_path).exists():
                 ui.label("English")
-                ui.audio(ogg.wav_en_path).classes("w-full").props("autoplay")
+                en_voice = ui.audio(ogg.wav_en_path).classes("w-full")
+
+                self.playlist.add(en_voice)
 
             if Path(ogg.wav_ru_path).exists():
                 ui.label("Russian")
                 with ui.row().classes("w-full items-center"):
-                    ui.audio(ogg.wav_ru_path).classes("flex-grow").props("autoplay")
+                    ru_voice = ui.audio(ogg.wav_ru_path).classes("flex-grow")
                     ui.button(
                         "Delete WAV",
                         on_click=lambda p=ogg.wav_ru_path: self.delete_wav(p),
                     ).props("color=negative")
+
+                    self.playlist.add(ru_voice)
 
     def open_next(self):
         if self.current_index < len(self.ids) - 1:
@@ -144,6 +150,8 @@ class SubsEditorPage:
             next_button.enabled = (
                 self.current_index < len(self.ids) - 1 or ns.page < ns.pages - 1
             )
+
+            ui.timer(0.1, self.playlist.start(), once=True)
 
     @property
     def render_page(self):

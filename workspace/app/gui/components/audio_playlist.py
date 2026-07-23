@@ -11,12 +11,15 @@ class AudioPlaylist:
     def start(self):
         if self._players:
             self._play(0)
-        return
 
     def _play(self, index: int):
         if index >= len(self._players):
             return
 
         player = self._players[index]
+
+        player.run_method("pause")
+        player.run_method("load")
         player.run_method("play")
-        player.on("ended", lambda _, i=index + 1: self._play(i))
+
+        player.on("ended.once", lambda _, i=index + 1: self._play(i))
