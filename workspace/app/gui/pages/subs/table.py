@@ -19,6 +19,12 @@ class SubsTablePage:
         self.current_search = ""
 
     def open_sub(self, sub_id: int):
+        try:
+            self.service.get(sub_id)
+        except Exception:
+            ui.notify(f"Subtitle {sub_id} not found", type="negative")
+            return
+
         ui.navigate.to(f"/subs/{sub_id}")
 
     def search(self, text: str):

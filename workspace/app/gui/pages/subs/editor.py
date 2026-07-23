@@ -17,7 +17,10 @@ class SubsEditorPage:
         self.sub = GuiSubsService.get(sub_id)
         self.playlist = AudioPlaylist()
         self.ids = ns.ids
-        self.current_index = self.ids.index(self.sub.id)
+        if self.sub.id in self.ids:
+            self.current_index = self.ids.index(self.sub.id)
+        else:
+            self.current_index = None
 
     def save(self):
         patch_sub(
@@ -47,6 +50,9 @@ class SubsEditorPage:
         ui.notify("File rendered", type="positive")
 
     def open_prev(self):
+        if self.current_index is None:
+            return
+
         if self.current_index > 0:
             ui.navigate.to(f"/subs/{self.ids[self.current_index - 1]}")
             return
@@ -58,6 +64,22 @@ class SubsEditorPage:
         ns.reload()
 
         ui.navigate.to(f"/subs/{ns.ids[-1]}")
+
+    def open_next(self):
+        if self.current_index is None:
+            return
+
+        if self.current_index < len(self.ids) - 1:
+            ui.navigate.to(f"/subs/{self.ids[self.current_index + 1]}")
+            return
+
+        if ns.page >= ns.pages - 1:
+            return
+
+        ns.page += 1
+        ns.reload()
+
+        ui.navigate.to(f"/subs/{ns.ids[0]}")
 
     def create_voice_block(self, ogg: OggDTO):
         with ui.card().classes("w-full"):
@@ -84,19 +106,6 @@ class SubsEditorPage:
                     "Render",
                     on_click=lambda p=ogg.wav_ru_path: self.voice_render(p),
                 ).props("color=green")
-
-    def open_next(self):
-        if self.current_index < len(self.ids) - 1:
-            ui.navigate.to(f"/subs/{self.ids[self.current_index + 1]}")
-            return
-
-        if ns.page >= ns.pages - 1:
-            return
-
-        ns.page += 1
-        ns.reload()
-
-        ui.navigate.to(f"/subs/{ns.ids[0]}")
 
     def body(self):
         with ui.dialog() as dialog, ui.card():
@@ -157,14 +166,16 @@ class SubsEditorPage:
         with ui.row().classes("w-full items-stretch no-wrap"):
             with ui.column().classes("justify-center"):
                 prev_button = ui.button("<<", on_click=self.open_prev).classes("h-full")
-                prev_button.enabled = self.current_index > 0 or ns.page > 0
+                prev_button.enabled = self.current_index is not None and (
+                    self.current_index > 0 or ns.page > 0
+                )
 
             with ui.column().classes("flex-grow"):
                 self.body()
 
             with ui.column().classes("justify-center"):
                 next_button = ui.button(">>", on_click=self.open_next).classes("h-full")
-                next_button.enabled = (
+                next_button.enabled = self.current_index is not None and (
                     self.current_index < len(self.ids) - 1 or ns.page < ns.pages - 1
                 )
 
