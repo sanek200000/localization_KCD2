@@ -47,7 +47,7 @@ def convert_audio_with_remote_session(
             target_audio = Path(*new_parts)
 
         if target_audio.exists():
-            # logger.warning(f"file {str(target_audio)} is exists")
+            logger.warning(f"file {str(target_audio)} is exists")
             continue
         if not target_text:
             logger.warning(f"target_text in id={sub.id} is None")

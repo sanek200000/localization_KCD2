@@ -1,3 +1,4 @@
+from loguru import logger
 from nicegui import ui
 from pathlib import Path
 
@@ -43,6 +44,7 @@ class SubsEditorPage:
     def voice_render(self, path):
         self.delete_wav(path)
         convert_audio_with_remote_session(sub=self.sub)
+        ui.notify("File rendered", type="positive")
 
     def open_prev(self):
         if self.current_index > 0:

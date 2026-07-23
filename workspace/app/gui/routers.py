@@ -1,10 +1,4 @@
-import sys
-from pathlib import Path
-
 from nicegui import ui
-
-
-sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from app.gui.pages.subs.editor import SubsEditorPage
 from app.gui.pages.subs.table import SubsTablePage
@@ -42,11 +36,3 @@ def tts():
 @ui.page("/settings")
 def settings():
     settings_page()
-
-
-ui.run(
-    title="KCD2 localization",
-    favicon="🎙️",
-    reload=True,
-    dark=True,
-)
