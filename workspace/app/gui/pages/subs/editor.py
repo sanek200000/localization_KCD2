@@ -36,10 +36,16 @@ class SubsEditorPage:
         ui.notify("Изменения сохранены", type="positive")
 
     def delete(self):
-        delete_sub(sub_id=self.sub.id)
+        id = self.sub.id
+
+        for ogg in self.sub.oggs:
+            self.delete_wav(ogg.wav_ru_path)
+
+        delete_sub(sub_id=id)
         ui.notify("Запись удалена", type="positive")
-        self.ids.pop(self.sub.id)
-        ui.navigate.to(f"/subs/{self.ids[self.current_index]}")
+
+        self.ids.pop(id)
+        ui.navigate.to(f"/subs/{self.ids[self.current_index - 1]}")
 
     def delete_wav(self, path: str):
         file = Path(path)
