@@ -16,11 +16,14 @@ class SubsEditorPage:
     def __init__(self, sub_id: int) -> None:
         self.sub = GuiSubsService.get(sub_id)
         self.playlist = AudioPlaylist()
+
         self.ids = ns.ids
         if self.sub.id in self.ids:
             self.current_index = self.ids.index(self.sub.id)
         else:
-            self.current_index = None
+            ns.restore(self.sub.id)
+            self.ids = ns.ids
+            self.current_index = self.ids.index(self.sub.id)
 
     def save(self):
         patch_sub(
@@ -166,16 +169,14 @@ class SubsEditorPage:
         with ui.row().classes("w-full items-stretch no-wrap"):
             with ui.column().classes("justify-center"):
                 prev_button = ui.button("<<", on_click=self.open_prev).classes("h-full")
-                prev_button.enabled = self.current_index is not None and (
-                    self.current_index > 0 or ns.page > 0
-                )
+                prev_button.enabled = self.current_index > 0 or ns.page > 0
 
             with ui.column().classes("flex-grow"):
                 self.body()
 
             with ui.column().classes("justify-center"):
                 next_button = ui.button(">>", on_click=self.open_next).classes("h-full")
-                next_button.enabled = self.current_index is not None and (
+                next_button.enabled = (
                     self.current_index < len(self.ids) - 1 or ns.page < ns.pages - 1
                 )
 

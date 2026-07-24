@@ -166,6 +166,16 @@ class BaseRepository:
 
         return self.session.scalar(stmt)
 
+    def get_id_pos(self, id: int, search: Optional[str] = None):
+        stmt = select(func.count()).select_from(self.model)
+
+        if search:
+            stmt = stmt.where(self.model.key.containts(search) and self.model.id < id)
+        else:
+            stmt = stmt.where(self.model.id < id)
+
+        return self.session.scalar(stmt)
+
     def add(self, data: BaseModel):
         """
         Создает новую запись в базе данных.

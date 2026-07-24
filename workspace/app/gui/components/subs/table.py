@@ -33,7 +33,12 @@ class SubsTable:
                         "flex": 2,
                     },
                     {
-                        "headerName": "Audio count",
+                        "headerName": "ru_audio",
+                        "field": "ru_audio",
+                        "width": 80,
+                    },
+                    {
+                        "headerName": "count oggs",
                         "field": "audio_count",
                         "width": 80,
                     },

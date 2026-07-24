@@ -9,6 +9,11 @@ def get_all_with_limit(db: DBManager, offset: int, limit: int, search: str = "")
 
 
 @inject_db
+def get_id_position(db: DBManager, id: int, search: str = ""):
+    return db.subs.get_id_pos(id, search or None)
+
+
+@inject_db
 def get_db_count(db: DBManager, search: str = ""):
     return db.subs.get_count(search or None)
 
