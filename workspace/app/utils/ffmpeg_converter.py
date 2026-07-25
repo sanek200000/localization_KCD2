@@ -117,11 +117,14 @@ def process_item(item: dict):
         return
 
     if output_wav.exists():
+        logger.debug(f"File {output_wav} exists")
         return
 
+    logger.info(f"Converting: {input_ogg}")
     output_wav.parent.mkdir(parents=True, exist_ok=True)
     command = f"ffmpeg -i {input_ogg} -ac 1 -ar 24000 -c:a pcm_s16le {output_wav}"
     subprocess.run(command, shell=True, check=True)
+    logger.success(f"Created: {output_wav}")
 
 
 def iter_items(data: dict):
@@ -173,8 +176,8 @@ def convert_ogg_to_wav(data: Optional[dict] = None):
     if data is None:
         data = make_data()
 
-    # with ThreadPoolExecutor(max_workers=20) as executor:
-    # list(executor.map(process_item, iter_items(data)))
+    with ThreadPoolExecutor(max_workers=20) as executor:
+        list(executor.map(process_item, iter_items(data)))
 
 
 if __name__ == "__main__":

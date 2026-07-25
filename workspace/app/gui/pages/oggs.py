@@ -28,7 +28,7 @@ class OggsPage:
         self.sind_id: Optional[int] = None
 
     def start_log_capture(self):
-        if self.sind_id:
+        if self.sind_id is None:
             self.sind_id = logger.add(
                 self.queue.put,
                 format="{time:HH:mm:ss} | {level:<8} | {message}",
@@ -84,7 +84,13 @@ class OggsPage:
                 )
 
     async def click_convert_oggs_to_wavs(self):
-        await run.io_bound(convert_ogg_to_wav)
+        self.log.clear()
+        self.start_log_capture()
+
+        try:
+            await run.io_bound(convert_ogg_to_wav)
+        finally:
+            self.stop_log_catrutre()
 
     def get_count_oggs(self, label: Label):
         count = get_oggs_count(search=None)
@@ -119,7 +125,7 @@ class OggsPage:
                     on_click=self.click_convert_oggs_to_wavs,
                 )
 
-            with ui.column().classes("justify-center"):
+            with ui.column().classes("w-full justify-center"):
                 ui.label("Log").classes("text-h5")
                 self.log = ui.log().classes("w-full").style("height: 350px")
                 ui.timer(0.1, self.update_log)
