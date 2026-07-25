@@ -1,10 +1,88 @@
-from nicegui import ui
+from pathlib import Path
 
+from nicegui import run, ui
+from nicegui.elements.button import Button
+from nicegui.elements.label import Label
+from nicegui.elements.spinner import Spinner
+
+from app.config import LOCALIZATION_PATH
 from app.gui.layout import page_layout
+from app.utils.parsers.counter import get_files_count_by_path
+
+ogg_en_path = LOCALIZATION_PATH.joinpath("./en_voice_ogg")
+wav_en_path = LOCALIZATION_PATH.joinpath("./en_voice_wav")
+ogg_ru_path = LOCALIZATION_PATH.joinpath("./ru_voice_ogg")
+wav_ru_path = LOCALIZATION_PATH.joinpath("./ru_voice_wav")
 
 
-def oggs_page():
-    def content():
+class OggsPage:
+    async def count_files(
+        self, btn: Button, spnr: Spinner, label: Label, path: Path, mask: str
+    ):
+        btn.disable()
+        spnr.visible = True
+        label.set_text("Подсчет...")
+
+        try:
+            count = await run.io_bound(lambda: get_files_count_by_path(path, mask))
+            label.set_text(f"Files: {count}")
+        finally:
+            spnr.visible = False
+            btn.enable()
+
+    def content(self):
         ui.label("OGG").classes("text-h4")
 
-    page_layout(content)
+        with ui.row().classes("items-center"):
+            spinner = ui.spinner(size="lg")
+            spinner.visible = False
+
+            lbl_en_oggs = ui.label("")
+
+            btn_en_oggs = ui.button(
+                "get files count en_voice_ogg",
+                on_click=lambda: self.count_files(
+                    btn=btn_en_oggs,
+                    spnr=spinner,
+                    label=lbl_en_oggs,
+                    path=ogg_en_path,
+                    mask="*.ogg",
+                ),
+            )
+
+    @property
+    def render_page(self):
+        page_layout(self.content)
+
+
+# class OggsPage_old:
+#     async def handle_click(self, calc_button: Button, result_lable: Label):
+#         calc_button.loading = True
+#         result_lable.text = "Counting..."
+#
+#         try:
+#             count = await asyncio.to_thread(
+#                 get_files_count_by_path,
+#                 path=LOCALIZATION_PATH.joinpath("./en_voice_ogg"),
+#                 mask="*.ogg",
+#             )
+#             result_lable.text = f"Count files in ogg_en_path: {count}"
+#         except Exception as ex:
+#             result_lable.text = f"Error in counting: {ex}"
+#         finally:
+#             calc_button.loading = False
+#
+#     def content(self):
+#         ui.label("OGG").classes("text-h4")
+#
+#         result_lable = ui.label("Count files in ogg_en_path: -")
+#         calc_button = ui.button(
+#             "get files count ogg_en_path",
+#             on_click=lambda: self.handle_click(calc_button, result_lable),
+#         )
+#
+#         ui.spinner(size="sm").bind_visibility_from(calc_button, "loading")
+#
+#     @property
+#     def render_page(self):
+#         page_layout(self.content)

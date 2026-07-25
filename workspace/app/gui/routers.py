@@ -3,7 +3,7 @@ from nicegui import ui
 from app.gui.pages.subs.editor import SubsEditorPage
 from app.gui.pages.subs.table import SubsTablePage
 from app.gui.pages.home import home_page
-from app.gui.pages.oggs import oggs_page
+from app.gui.pages.oggs import OggsPage
 from app.gui.pages.tts import tts_page
 from app.gui.pages.settings import settings_page
 
@@ -25,7 +25,7 @@ def sub_editor(sub_id: int):
 
 @ui.page("/oggs")
 def oggs():
-    oggs_page()
+    OggsPage().render_page
 
 
 @ui.page("/tts")

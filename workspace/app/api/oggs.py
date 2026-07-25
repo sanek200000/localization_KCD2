@@ -4,6 +4,11 @@ from app.utils.db_manager import DBManager
 
 
 @inject_db
+def get_all_oggs_iter(db: DBManager, batch_size: int):
+    return db.oggs.get_iter(batch_size=batch_size)
+
+
+@inject_db
 def add_ogg(db: DBManager, data: OggAdd):
     """
     Добавляет запись об OGG-файле в базу данных.

@@ -1,7 +1,12 @@
 import subprocess
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
-from helper import load_marshal, append_txt
+from typing import Optional
+
+from loguru import logger
+
+from app.api.oggs import get_all_oggs_iter
+from app.helper import load_marshal, append_txt
 
 DB_WITH_FILES_PATHES = Path("./temp/db_with_pathes.bin")
 KEYS_WITHOUT_OGG = Path("./temp/keys_without_oggs.txt")
@@ -57,6 +62,27 @@ def convert_ogg_to_wav_onethread(data: dict):
             subprocess.run(command, shell=True, check=True)
 
 
+def make_data():
+    data = dict()
+
+    while True:
+        oggs = get_all_oggs_iter(batch_size=100)
+
+        if not oggs:
+            break
+
+        data[oggs.id] = {
+            "key": oggs.key,
+            "ogg_en_path": oggs.ogg_en_path,
+            "wav_en_path": oggs.wav_en_path,
+            "ogg_ru_path": oggs.ogg_ru_path,
+            "wav_ru_path": oggs.wav_ru_path,
+        }
+
+    logger.info(f"{len(data) = }")
+    return data
+
+
 def process_item(item: dict):
     """
     Обрабатывает одну запись аудиофайла и выполняет конвертацию
@@ -87,7 +113,8 @@ def process_item(item: dict):
     try:
         input_ogg = Path(value.get("ogg_en_path")).resolve()
         output_wav = Path(value.get("wav_en_path")).resolve()
-    except:
+    except Exception as ex:
+        logger.exception(ex)
         append_txt(KEYS_WITHOUT_OGG, key)
         return
 
@@ -120,7 +147,7 @@ def iter_items(data: dict):
             yield key, value
 
 
-def convert_ogg_to_wav(data: dict):
+def convert_ogg_to_wav(data: Optional[dict] = None):
     """
     Конвертирует OGG-файлы в WAV-файлы в многопоточном режиме.
 
@@ -145,6 +172,9 @@ def convert_ogg_to_wav(data: dict):
         Максимальное количество одновременно работающих потоков
         ограничено значением `max_workers=20`.
     """
+    if data is None:
+        make_data()
+
     with ThreadPoolExecutor(max_workers=20) as executor:
         list(executor.map(process_item, iter_items(data)))
 
@@ -153,4 +183,9 @@ if __name__ == "__main__":
     pass
 
     data = load_marshal(DB_WITH_FILES_PATHES)
-    convert_ogg_to_wav(data)
+    for i, (key, value) in enumerate(data.items()):
+        if i >= 10:
+            break
+        print(f"{key = }\n{value = }\n\n")
+
+    # convert_ogg_to_wav(data)
