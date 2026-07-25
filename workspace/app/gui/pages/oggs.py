@@ -1,13 +1,18 @@
 from pathlib import Path
+from typing import Optional
+from queue import Queue
 
+from loguru import logger
 from nicegui import run, ui
 from nicegui.elements.button import Button
 from nicegui.elements.label import Label
+from nicegui.elements.log import Log
 from nicegui.elements.spinner import Spinner
 
 from app.api.oggs import get_oggs_count
 from app.config import LOCALIZATION_PATH
 from app.gui.layout import page_layout
+from app.utils.ffmpeg_converter import convert_ogg_to_wav
 from app.utils.parsers.counter import get_files_count_by_path
 
 ogg_en_path = LOCALIZATION_PATH.joinpath("./en_voice_ogg")
@@ -17,6 +22,27 @@ wav_ru_path = LOCALIZATION_PATH.joinpath("./ru_voice_wav")
 
 
 class OggsPage:
+    def __init__(self) -> None:
+        self.log: Optional[Log] = None
+        self.queue: Queue[str] = Queue()
+        self.sind_id: Optional[int] = None
+
+    def start_log_capture(self):
+        if self.sind_id:
+            self.sind_id = logger.add(
+                self.queue.put,
+                format="{time:HH:mm:ss} | {level:<8} | {message}",
+            )
+
+    def stop_log_catrutre(self):
+        if self.sind_id:
+            logger.remove(self.sind_id)
+            self.sind_id = None
+
+    def update_log(self):
+        while not self.queue.empty():
+            self.log.push(self.queue.get())
+
     async def count_files(
         self, btn: Button, spnr: Spinner, label: Label, path: Path, mask: str
     ):
@@ -57,6 +83,9 @@ class OggsPage:
                     ),
                 )
 
+    async def click_convert_oggs_to_wavs(self):
+        await run.io_bound(convert_ogg_to_wav)
+
     def get_count_oggs(self, label: Label):
         count = get_oggs_count(search=None)
         label.set_text(f"{count}")
@@ -82,39 +111,19 @@ class OggsPage:
                     on_click=lambda: self.get_count_oggs(label_oggs_count),
                 )
 
+        ui.separator()
+        with ui.row().classes("w-full items-stretch no-wrap"):
+            with ui.column().classes("justify-center"):
+                ui.button(
+                    "convert oggs to wavs",
+                    on_click=self.click_convert_oggs_to_wavs,
+                )
+
+            with ui.column().classes("justify-center"):
+                ui.label("Log").classes("text-h5")
+                self.log = ui.log().classes("w-full").style("height: 350px")
+                ui.timer(0.1, self.update_log)
+
     @property
     def render_page(self):
         page_layout(self.content)
-
-
-# class OggsPage_old:
-#     async def handle_click(self, calc_button: Button, result_lable: Label):
-#         calc_button.loading = True
-#         result_lable.text = "Counting..."
-#
-#         try:
-#             count = await asyncio.to_thread(
-#                 get_files_count_by_path,
-#                 path=LOCALIZATION_PATH.joinpath("./en_voice_ogg"),
-#                 mask="*.ogg",
-#             )
-#             result_lable.text = f"Count files in ogg_en_path: {count}"
-#         except Exception as ex:
-#             result_lable.text = f"Error in counting: {ex}"
-#         finally:
-#             calc_button.loading = False
-#
-#     def content(self):
-#         ui.label("OGG").classes("text-h4")
-#
-#         result_lable = ui.label("Count files in ogg_en_path: -")
-#         calc_button = ui.button(
-#             "get files count ogg_en_path",
-#             on_click=lambda: self.handle_click(calc_button, result_lable),
-#         )
-#
-#         ui.spinner(size="sm").bind_visibility_from(calc_button, "loading")
-#
-#     @property
-#     def render_page(self):
-#         page_layout(self.content)

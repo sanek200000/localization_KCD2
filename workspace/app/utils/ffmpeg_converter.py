@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
 
 from loguru import logger
+from tqdm import tqdm
 
 from app.api.oggs import get_all_oggs_iter
 from app.helper import load_marshal, append_txt
@@ -65,18 +66,15 @@ def convert_ogg_to_wav_onethread(data: dict):
 def make_data():
     data = dict()
 
-    while True:
-        oggs = get_all_oggs_iter(batch_size=100)
+    oggs = get_all_oggs_iter(batch_size=100)
 
-        if not oggs:
-            break
-
-        data[oggs.id] = {
-            "key": oggs.key,
-            "ogg_en_path": oggs.ogg_en_path,
-            "wav_en_path": oggs.wav_en_path,
-            "ogg_ru_path": oggs.ogg_ru_path,
-            "wav_ru_path": oggs.wav_ru_path,
+    for ogg in tqdm(oggs, desc="OGGS"):
+        data[ogg.id] = {
+            "key": ogg.key,
+            "ogg_en_path": ogg.ogg_en_path,
+            "wav_en_path": ogg.wav_en_path,
+            "ogg_ru_path": ogg.ogg_ru_path,
+            "wav_ru_path": ogg.wav_ru_path,
         }
 
     logger.info(f"{len(data) = }")
@@ -173,10 +171,10 @@ def convert_ogg_to_wav(data: Optional[dict] = None):
         ограничено значением `max_workers=20`.
     """
     if data is None:
-        make_data()
+        data = make_data()
 
     # with ThreadPoolExecutor(max_workers=20) as executor:
-    #     list(executor.map(process_item, iter_items(data)))
+    # list(executor.map(process_item, iter_items(data)))
 
 
 if __name__ == "__main__":
