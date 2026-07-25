@@ -30,6 +30,52 @@ def load_model(tts_client: TTSClient, id: int):
 @inject_tts
 def convert_audio_with_remote_session(
     tts_client: TTSClient,
+    sub_id: int,
+    ref_text: str,
+    target_text: str,
+    ref_audio: Path,
+    target_audio: Path,
+    change_dir: Optional[str] = None,
+):
+    if change_dir:
+        new_parts = [
+            f"ru_voice_wav_{change_dir}" if part == "ru_voice_wav" else part
+            for part in target_audio.parts
+        ]
+        target_audio = Path(*new_parts)
+
+    if target_audio.exists():
+        logger.warning(f"file {str(target_audio)} is exists")
+        raise
+    if not target_text:
+        logger.warning(f"target_text in id={sub_id} is None")
+        raise
+
+    target_audio.parent.mkdir(parents=True, exist_ok=True)
+
+    request = TTSRequestDTO(
+        ref_text=ref_text,
+        gen_text=target_text,
+    )
+    try:
+        audio_bytes = tts_client.generate(ref_audio=ref_audio, request=request)
+    except Exception as ex:
+        logger.error(f"{type(ex)}: {ex}")
+        raise
+
+    if audio_bytes:
+        target_audio.write_bytes(audio_bytes)
+        logger.info(request.format_log(str(ref_audio), str(target_audio)))
+    else:
+        logger.warning(
+            f"Empty response with request: {request.format_log(str(ref_audio), str(target_audio))}"
+        )
+        raise
+
+
+@inject_tts
+def convert_audio_with_remote_session_old(
+    tts_client: TTSClient,
     sub: SubDTO,
     change_dir: Optional[str] = None,
 ):
@@ -125,7 +171,23 @@ def streaming_conversion(
             continue
         logger.info(f"Sub #{i}")
 
-        convert_audio_with_remote_session(sub=sub, change_dir=change_dir)
+        ref_text = sub.en_sub
+        target_text = sub.ru_accent
+        for ogg in sub.oggs:
+            ref_audio = Path(ogg.wav_en_path)
+            target_audio = Path(ogg.wav_ru_path)
+
+            try:
+                convert_audio_with_remote_session(
+                    sub_id=sub.id,
+                    ref_text=ref_text,
+                    target_text=target_text,
+                    ref_audio=ref_audio,
+                    target_audio=target_audio,
+                    change_dir=change_dir,
+                )
+            except:
+                continue
 
 
 def convert_audio_en_to_ru(data: dict):

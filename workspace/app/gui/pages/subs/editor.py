@@ -49,14 +49,27 @@ class SubsEditorPage:
 
     def delete_wav(self, path: str):
         file = Path(path)
-        file.unlink(missing_ok=True)
-        ui.notify("File deleted", type="positive")
-        ui.navigate.to(f"/subs/{self.sub.id}")
+        if file.unlink(missing_ok=True):
+            ui.notify("File deleted", type="positive")
+        # ui.navigate.to(f"/subs/{self.sub.id}")
 
-    def voice_render(self, path):
-        self.delete_wav(path)
-        convert_audio_with_remote_session(sub=self.sub)
-        ui.notify("File rendered", type="positive")
+    def voice_render(self, ref_audio: str, target_audio: str):
+        self.delete_wav(target_audio)
+        ui.notify(f"{ref_audio = }", type="positive")
+        ui.notify(f"{target_audio = }", type="positive")
+
+        try:
+            convert_audio_with_remote_session(
+                sub_id=self.sub.id,
+                ref_text=self.sub.en_sub,
+                target_text=self.sub.ru_accent,
+                ref_audio=Path(ref_audio),
+                target_audio=Path(target_audio),
+            )
+        except:
+            ui.notify("File not rendered", type="negative")
+        else:
+            ui.notify("File rendered", type="positive")
 
     def open_prev(self):
         if self.current_index is None:
@@ -113,7 +126,9 @@ class SubsEditorPage:
 
                 ui.button(
                     "Render",
-                    on_click=lambda p=ogg.wav_ru_path: self.voice_render(p),
+                    on_click=lambda e, en=ogg.wav_en_path, ru=ogg.wav_ru_path: (
+                        self.voice_render(en, ru)
+                    ),
                 ).props("color=green")
 
     def body(self):
