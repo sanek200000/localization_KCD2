@@ -14,7 +14,7 @@ def get_id_position(db: DBManager, id: int, search: str = ""):
 
 
 @inject_db
-def get_db_count(db: DBManager, search: str = ""):
+def get_subs_count(db: DBManager, search: str = ""):
     return db.subs.get_count(search or None)
 
 

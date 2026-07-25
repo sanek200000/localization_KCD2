@@ -44,12 +44,12 @@ class SubsTablePage:
         self.table.set_rows(rows)
 
     def content(self):
-        with ui.column().classes("w-full h-full"):
+        with ui.column().classes("w-full items-center"):
             SubsToolbar(on_search=self.load, on_open_id=self.open_sub)
 
             ui.separator()
-            self.table = SubsTable(on_open=self.open_sub)
             self.pager = Pager(page_size=20, on_change=self.load)
+            self.table = SubsTable(on_open=self.open_sub)
             self.pager.set_total(self.service.count())
             self.pager.emit()
 

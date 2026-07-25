@@ -5,6 +5,7 @@ from nicegui.elements.button import Button
 from nicegui.elements.label import Label
 from nicegui.elements.spinner import Spinner
 
+from app.api.oggs import get_oggs_count
 from app.config import LOCALIZATION_PATH
 from app.gui.layout import page_layout
 from app.utils.parsers.counter import get_files_count_by_path
@@ -25,30 +26,61 @@ class OggsPage:
 
         try:
             count = await run.io_bound(lambda: get_files_count_by_path(path, mask))
-            label.set_text(f"Files: {count}")
+            label.set_text(f"{count}")
         finally:
             spnr.visible = False
             btn.enable()
 
+    def add_ui_count(self, path: Path, mask: str):
+        name = path.name
+
+        with ui.row().classes("w-full items-stretch no-wrap"):
+            with ui.column().classes("justify-center"):
+                ui.label("Files count:").classes("w-full text-base")
+
+            with ui.column().classes("flex-grow items-center"):
+                with ui.row():
+                    spinner = ui.spinner(size="lg")
+                    spinner.visible = False
+
+                    label = ui.label("_____").classes("text-base")
+
+            with ui.column().classes("justify-center"):
+                button = ui.button(
+                    f"get files count {name}",
+                    on_click=lambda: self.count_files(
+                        btn=button,
+                        spnr=spinner,
+                        label=label,
+                        path=path,
+                        mask=mask,
+                    ),
+                )
+
+    def get_count_oggs(self, label: Label):
+        count = get_oggs_count(search=None)
+        label.set_text(f"{count}")
+
     def content(self):
         ui.label("OGG").classes("text-h4")
 
-        with ui.row().classes("items-center"):
-            spinner = ui.spinner(size="lg")
-            spinner.visible = False
+        self.add_ui_count(ogg_en_path, "*.ogg")
+        self.add_ui_count(wav_en_path, "*.wav")
+        self.add_ui_count(ogg_ru_path, "*.ogg")
+        self.add_ui_count(wav_ru_path, "*.wav")
 
-            lbl_en_oggs = ui.label("")
+        with ui.row().classes("w-full items-stretch no-wrap"):
+            with ui.column().classes("justify-center"):
+                ui.label("Oggs table count:").classes("w-full text-base")
 
-            btn_en_oggs = ui.button(
-                "get files count en_voice_ogg",
-                on_click=lambda: self.count_files(
-                    btn=btn_en_oggs,
-                    spnr=spinner,
-                    label=lbl_en_oggs,
-                    path=ogg_en_path,
-                    mask="*.ogg",
-                ),
-            )
+            with ui.column().classes("flex-grow items-center"):
+                label_oggs_count = ui.label("_____").classes("text-base")
+
+            with ui.column().classes("justify-center"):
+                ui.button(
+                    "get count",
+                    on_click=lambda: self.get_count_oggs(label_oggs_count),
+                )
 
     @property
     def render_page(self):

@@ -175,8 +175,8 @@ def convert_ogg_to_wav(data: Optional[dict] = None):
     if data is None:
         make_data()
 
-    with ThreadPoolExecutor(max_workers=20) as executor:
-        list(executor.map(process_item, iter_items(data)))
+    # with ThreadPoolExecutor(max_workers=20) as executor:
+    #     list(executor.map(process_item, iter_items(data)))
 
 
 if __name__ == "__main__":

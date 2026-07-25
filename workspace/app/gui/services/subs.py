@@ -1,16 +1,5 @@
-from app.api.subs import get_all_with_limit, get_db_count, get_sub
+from app.api.subs import get_all_with_limit, get_subs_count, get_sub
 from app.schemas.subs import SubDTO
-
-
-# class SubsService:
-#     def __init__(self, session) -> None:
-#         self.repo = SubsRepository(session)
-#
-#     async def get_page(self, offset: int, limit: int):
-#         return await self.repo.get_all(offset=offset, limit=limit)
-#
-#     async def count(self):
-#         return await self.repo.count()
 
 
 class GuiSubsService:
@@ -24,7 +13,7 @@ class GuiSubsService:
 
     @staticmethod
     def count(search: str = ""):
-        return get_db_count(search or None)
+        return get_subs_count(search or None)
 
     @staticmethod
     def get(sub_id: int) -> SubDTO:

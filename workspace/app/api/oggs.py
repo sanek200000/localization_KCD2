@@ -9,6 +9,11 @@ def get_all_oggs_iter(db: DBManager, batch_size: int):
 
 
 @inject_db
+def get_oggs_count(db: DBManager, search: str = ""):
+    return db.oggs.get_count(search or None)
+
+
+@inject_db
 def add_ogg(db: DBManager, data: OggAdd):
     """
     Добавляет запись об OGG-файле в базу данных.
