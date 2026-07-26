@@ -84,6 +84,9 @@ class OggsPage:
                 )
 
     async def click_convert_oggs_to_wavs(self):
+        self.btn_convert_oggs_to_wavs.disable()
+        self.spnr_convert_oggs_to_wavs.visible = True
+
         self.log.clear()
         self.start_log_capture()
 
@@ -91,6 +94,9 @@ class OggsPage:
             await run.io_bound(convert_ogg_to_wav)
         finally:
             self.stop_log_catrutre()
+
+            self.btn_convert_oggs_to_wavs.enable()
+            self.spnr_convert_oggs_to_wavs.visible = False
 
     def get_count_oggs(self, label: Label):
         count = get_oggs_count(search=None)
@@ -120,7 +126,10 @@ class OggsPage:
         ui.separator()
         with ui.row().classes("w-full items-stretch no-wrap"):
             with ui.column().classes("justify-center"):
-                ui.button(
+                self.spnr_convert_oggs_to_wavs = ui.spinner(size="lg")
+                self.spnr_convert_oggs_to_wavs.visible = False
+
+                self.btn_convert_oggs_to_wavs = ui.button(
                     "convert oggs to wavs",
                     on_click=self.click_convert_oggs_to_wavs,
                 )
@@ -128,7 +137,7 @@ class OggsPage:
             with ui.column().classes("w-full justify-center"):
                 ui.label("Log").classes("text-h5")
                 self.log = ui.log().classes("w-full").style("height: 350px")
-                ui.timer(0.1, self.update_log)
+                ui.timer(1, self.update_log)
 
     @property
     def render_page(self):
