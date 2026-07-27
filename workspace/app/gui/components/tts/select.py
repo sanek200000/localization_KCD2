@@ -4,14 +4,13 @@ from app.api.tts import load_model
 
 
 class SelectModels:
-    def __init__(self, models):
-        self.models = models
+    def __init__(self, models: list):
 
         with ui.row().classes("justify-center items-center"):
             self.sl = ui.select(
-                options=self.models,
+                options=models,
                 label="TTS models:",
-                value=self.models[2],
+                value=models[2],
             ).classes("text-base")
 
             self.btn = ui.button("load model", on_click=self.click_btn)
@@ -28,3 +27,7 @@ class SelectModels:
         finally:
             self.spin.visible = False
             self.btn.enable()
+
+    @property
+    def get_button(self):
+        return self.btn

@@ -8,6 +8,7 @@ class GetTTSModels:
         result = list()
 
         if isinstance(models, str):
+            print(f"{models = }")
             return
 
         for key, value in models.items():

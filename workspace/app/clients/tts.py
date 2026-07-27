@@ -1,5 +1,3 @@
-from math import log
-
 import requests
 from pathlib import Path
 from time import sleep
@@ -72,6 +70,39 @@ class TTSClient:
         """
         self.close()
 
+    def ping(self) -> dict:
+        try:
+            response = self._session.get(
+                f"{self._server_url}/f5tts",
+                timeout=30,
+            )
+            return response.json()
+        except (
+            requests.ConnectionError,
+            requests.Timeout,
+            HTTPError,
+        ):
+            return {"status": "no connection"}
+
+    def check_model(self) -> str | dict:
+        try:
+            response = self._session.get(
+                f"{self._server_url}/f5tts/model/current",
+                timeout=30,
+            )
+            rsp = response.json()
+            name = rsp.get("model").get("name")
+            path = rsp.get("model").get("ckpt_path")
+
+            return " ".join((name, path))
+        except (
+            requests.ConnectionError,
+            requests.Timeout,
+            HTTPError,
+            AttributeError,
+        ):
+            return {"status": "no model"}
+
     def get_models(self):
         try:
             response = self._session.get(
@@ -79,15 +110,18 @@ class TTSClient:
                 timeout=30,
             )
             return response.json()
-        except ConnectionError:
+        except requests.ConnectionError:
             models = "No connect to TTS server"
-            logger.exception(models)
+            logger.error(models)
+            raise
         except requests.Timeout:
             models = "Превышено время ожидания ответа от TTS-сервера."
-            logger.exception(models)
+            logger.error(models)
+            raise
         except HTTPError as he:
             models = f"Сервер ответил с ошибкой"
-            logger.exception(f"Сервер ответил с ошибкой: {he.response.status_code}")
+            logger.error(f"Сервер ответил с ошибкой: {he.response.status_code}")
+            raise
         except Exception as ex:
             logger.error(f"{type(ex)} {ex}")
             raise
