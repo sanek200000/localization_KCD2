@@ -4,7 +4,7 @@ from app.gui.pages.subs.editor import SubsEditorPage
 from app.gui.pages.subs.table import SubsTablePage
 from app.gui.pages.home import home_page
 from app.gui.pages.oggs import OggsPage
-from app.gui.pages.tts import tts_page
+from app.gui.pages.tts import TTSpage
 from app.gui.pages.settings import settings_page
 
 
@@ -30,7 +30,7 @@ def oggs():
 
 @ui.page("/tts")
 def tts():
-    tts_page()
+    TTSpage().reder_page
 
 
 @ui.page("/settings")

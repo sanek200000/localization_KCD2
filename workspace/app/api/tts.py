@@ -18,8 +18,13 @@ KEYS_WITHOUT_RUSUB = Path("./temp/keys_without_rusub.txt").resolve()
 
 
 @inject_tts
-def get_models(tts_client: TTSClient):
-    return tts_client.get_models()
+def get_models(tts_client: TTSClient) -> dict | str:
+    try:
+        models = tts_client.get_models()
+    except Exception as ex:
+        models = "No connect to TTS server"
+        logger.error(f"Непредвиденная ошибка: {ex}")
+    return models
 
 
 @inject_tts
@@ -150,7 +155,8 @@ def streaming_conversion(
                     target_audio=target_audio,
                     change_dir=change_dir,
                 )
-            except:
+            except Exception as ex:
+                logger.exception(ex)
                 continue
 
 

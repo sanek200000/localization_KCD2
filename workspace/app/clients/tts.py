@@ -5,6 +5,7 @@ from pathlib import Path
 from time import sleep
 
 from loguru import logger
+from requests.exceptions import HTTPError
 
 from app.config import SS
 from app.exceptions.tts import TTSConnectionError, TTSServerError
@@ -78,6 +79,15 @@ class TTSClient:
                 timeout=30,
             )
             return response.json()
+        except ConnectionError:
+            models = "No connect to TTS server"
+            logger.exception(models)
+        except requests.Timeout:
+            models = "Превышено время ожидания ответа от TTS-сервера."
+            logger.exception(models)
+        except HTTPError as he:
+            models = f"Сервер ответил с ошибкой"
+            logger.exception(f"Сервер ответил с ошибкой: {he.response.status_code}")
         except Exception as ex:
             logger.error(f"{type(ex)} {ex}")
             raise
