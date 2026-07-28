@@ -1,6 +1,7 @@
 from nicegui import ui, run
 
-from app.api.tts import change_tts_server, get_server_url, load_model
+from app.api.tts import get_server_url, load_model
+from app.config import RS
 from app.gui.components.tts.area import TextareaTTSServer
 from app.gui.services.tts import GetTTSModels
 
@@ -62,7 +63,7 @@ class SelectServer:
         self.spin.visible = True
 
         try:
-            await run.io_bound(lambda: change_tts_server(url=self.inp.value))
+            RS.tts_server_url = self.inp.value
             await self._area.refresh()
         finally:
             self.spin.visible = False

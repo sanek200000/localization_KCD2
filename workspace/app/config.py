@@ -42,6 +42,15 @@ class Settings(BaseSettings):
 
 SS = Settings()
 
+
+class RuntimeSettings:
+    def __init__(self):
+        self.tts_server_url = SS.tts_server_url
+
+
+RS = RuntimeSettings()
+
+
 if __name__ == "__main__":
     print(f"{SS.DB_URL = }")
 

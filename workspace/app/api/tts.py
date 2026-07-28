@@ -42,10 +42,10 @@ def get_models(tts_client: TTSClient) -> dict | str:
         return models
 
 
-@inject_tts
-def change_tts_server(tts_client: TTSClient, url: str) -> dict:
-    tts_client.reconnect(url)
-    logger.info(f"URL cnanging on {url}")
+# @inject_tts
+# def change_tts_server(tts_client: TTSClient, url: str) -> dict:
+#     tts_client.reconnect(url)
+#     logger.info(f"URL cnanging on {url}")
 
 
 @inject_tts

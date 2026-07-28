@@ -5,7 +5,7 @@ from time import sleep
 from loguru import logger
 from requests.exceptions import HTTPError
 
-from app.config import SS
+from app.config import RS, SS
 from app.exceptions.tts import TTSConnectionError, TTSServerError
 from app.schemas.jobs import JobStatus, JobCreateResponseDTO, JobStatusResponseDTO
 from app.schemas.tts import TTSRequestDTO
@@ -28,14 +28,9 @@ class TTSClient:
 
     def __init__(self) -> None:
         self._session = requests.Session()
-        self._server_url = SS.tts_server_url.rstrip("/")
+        self._server_url = RS.tts_server_url.rstrip("/")
         self._timeout = SS.tts_timeout
-
-    def reconnect(self, url: str) -> None:
-        self.close()
-        self._server_url = url.rstrip("/")
-        self._session = requests.Session()
-        logger.info("The reconnection was successful")
+        # logger.info(f"TTSClient created: {id(self)}")
 
     def close(self):
         """
