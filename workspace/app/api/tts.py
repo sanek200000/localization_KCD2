@@ -72,10 +72,10 @@ def convert_audio_with_remote_session(
 
     if target_audio.exists():
         logger.warning(f"file {str(target_audio)} is exists")
-        raise
+        return
     if not target_text:
         logger.warning(f"target_text in id={sub_id} is None")
-        raise
+        return
 
     target_audio.parent.mkdir(parents=True, exist_ok=True)
 
@@ -87,7 +87,7 @@ def convert_audio_with_remote_session(
         audio_bytes = tts_client.generate(ref_audio=ref_audio, request=request)
     except Exception as ex:
         logger.error(f"{type(ex)}: {ex}")
-        raise
+        return ex
 
     if audio_bytes:
         target_audio.write_bytes(audio_bytes)
@@ -96,7 +96,7 @@ def convert_audio_with_remote_session(
         logger.warning(
             f"Empty response with request: {request.format_log(str(ref_audio), str(target_audio))}"
         )
-        raise
+        return
 
 
 def streaming_conversion(

@@ -1,8 +1,11 @@
+import requests
+
+
 class TTSClientError(Exception):
     pass
 
 
-class TTSConnectionError(TTSClientError):
+class TTSConnectionError(requests.ConnectionError):
     pass
 
 

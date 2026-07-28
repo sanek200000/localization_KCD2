@@ -141,7 +141,7 @@ class TTSClient:
         return response.json()
 
     def generate(self, ref_audio: Path, request: TTSRequestDTO) -> bytes:
-        poll_interval = 5
+        poll_interval = 10
         max_connection_errors = 3
         connection_errors = 0
 
@@ -160,11 +160,21 @@ class TTSClient:
                 )
 
                 if connection_errors >= max_connection_errors:
+                    logger.error(
+                        f"connection_errors >= max_connection_errors ({connection_errors = })"
+                    )
                     raise
 
                 sleep(poll_interval)
                 continue
             except Exception as ex:
+                connection_errors += 1
+                if connection_errors >= max_connection_errors:
+                    logger.error(
+                        f"connection_errors >= max_connection_errors ({connection_errors = })"
+                    )
+                    raise
+
                 logger.error(f"{type(ex)} {ex}")
 
             logger.debug(
