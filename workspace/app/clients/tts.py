@@ -31,6 +31,12 @@ class TTSClient:
         self._server_url = SS.tts_server_url.rstrip("/")
         self._timeout = SS.tts_timeout
 
+    def reconnect(self, url: str) -> None:
+        self.close()
+        self._server_url = url.rstrip("/")
+        self._session = requests.Session()
+        logger.info("The reconnection was successful")
+
     def close(self):
         """
         Закрывает HTTP-сессию клиента.
@@ -243,3 +249,7 @@ class TTSClient:
             logger.warning(f"Failed generation: {result}")
         except Exception as ex:
             logger.error(f"{type(ex)} {ex}")
+
+    @property
+    def server_url(self):
+        return self._server_url

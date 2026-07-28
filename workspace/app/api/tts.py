@@ -17,6 +17,11 @@ KEYS_WITHOUT_RUSUB = Path("./temp/keys_without_rusub.txt").resolve()
 
 
 @inject_tts
+def get_server_url(tts_client: TTSClient) -> dict:
+    return tts_client.server_url
+
+
+@inject_tts
 def check_tts_server_connection(tts_client: TTSClient) -> dict:
     return tts_client.ping()
 
@@ -35,6 +40,12 @@ def get_models(tts_client: TTSClient) -> dict | str:
         logger.error(f"Непредвиденная ошибка: {ex}")
     finally:
         return models
+
+
+@inject_tts
+def change_tts_server(tts_client: TTSClient, url: str) -> dict:
+    tts_client.reconnect(url)
+    logger.info(f"URL cnanging on {url}")
 
 
 @inject_tts

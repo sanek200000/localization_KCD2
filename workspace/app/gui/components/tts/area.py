@@ -1,7 +1,10 @@
-from nicegui import ui
+from nicegui import ui, run
 
-from app.api.tts import check_tts_loaded_model, check_tts_server_connection
-from app.config import SS
+from app.api.tts import (
+    check_tts_loaded_model,
+    check_tts_server_connection,
+    get_server_url,
+)
 
 
 class TextareaTTSServer:
@@ -16,16 +19,17 @@ class TextareaTTSServer:
                 "round flat icon=refresh"
             )
 
-        self.refresh()
+        ui.timer(0.1, self.refresh, once=True)
 
-    def refresh(self):
-        url = SS.tts_server_url
-        connection = check_tts_server_connection()
-        model = check_tts_loaded_model()
+    async def refresh(self):
+        url = get_server_url()
+        connection = await run.io_bound(check_tts_server_connection)
+        model = await run.io_bound(check_tts_loaded_model)
 
         self._area.value = (
             f"server url: {url}\nconnection: {connection}\nloaded model: {model}"
         )
+
         self._area.update()
 
     @property
