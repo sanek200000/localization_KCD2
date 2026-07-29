@@ -2,7 +2,10 @@ import asyncio
 import sys
 from typing import Optional
 
-from nicegui import ui
+from loguru import logger
+from nicegui import run, ui
+
+from app.utils.tts import check_ready_tts_server
 
 
 class ProcessRunner:
@@ -14,7 +17,7 @@ class ProcessRunner:
         self._render_task: Optional[asyncio.Task] = None
         self._running = False
 
-        with ui.row().classes("w-full no-wrap items-start"):
+        with ui.row().classes("w-full no-wrap items-start") as self.root:
             with ui.column().classes("items-stretch"):
                 self.btn_start = ui.button("start", on_click=self.start).classes(
                     "color=green"
@@ -26,6 +29,13 @@ class ProcessRunner:
                 self.btn_stop.disable()
 
             self.log = ui.log(max_lines=max_lines).classes("w-full h-200")
+
+        ui.timer(0.1, self.refresh, once=True)
+
+    async def refresh(self):
+        check = await run.io_bound(check_ready_tts_server)
+
+        self.root.set_visibility(check)
 
     async def start(self):
         if self._running:

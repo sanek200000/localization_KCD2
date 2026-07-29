@@ -9,18 +9,25 @@ from app.utils.tts import check_ready_for_load_model, check_ready_tts_server
 
 
 class TTSpage:
+    async def reload(self):
+        await self.area.refresh()
+        await self.sm.refresh()
+        await self.pr.refresh()
+
     def content(self):
         ui.label("TTS").classes("text-h4")
 
-        area = TextareaTTSServer()
-        SelectServer(area)
+        self.area = TextareaTTSServer()
+        SelectServer(self.reload)
 
-        if check_ready_for_load_model():
-            SelectModels(area)
+        self.sm = SelectModels(self.reload)
+        # if check_ready_for_load_model():
+        #     SelectModels(self.reload)
 
-        if check_ready_tts_server():
-            # ui.button("start", on_click=lambda: streaming_conversion(limit=4))
-            ProcessRunner("app.cli.streaming_conversion", "--limit", "10")
+        self.pr = ProcessRunner("app.cli.streaming_conversion", "--limit", "10")
+
+        # if check_ready_tts_server():
+        # ui.button("start", on_click=lambda: streaming_conversion(limit=4))
 
     @property
     def reder_page(self):
