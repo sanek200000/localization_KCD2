@@ -21,13 +21,10 @@ class TTSpage:
         SelectServer(self.reload)
 
         self.sm = SelectModels(self.reload)
-        # if check_ready_for_load_model():
-        #     SelectModels(self.reload)
 
         self.pr = ProcessRunner("app.cli.streaming_conversion", "--limit", "10")
 
-        # if check_ready_tts_server():
-        # ui.button("start", on_click=lambda: streaming_conversion(limit=4))
+        ui.timer(0.1, self.reload, once=True)
 
     @property
     def reder_page(self):

@@ -1,4 +1,5 @@
 from nicegui import ui, run
+from requests import models
 
 from app.api.tts import get_server_url, load_model
 from app.config import RS
@@ -11,34 +12,42 @@ class SelectModels:
     def __init__(self, reload_components):
         self.reload_components = reload_components
 
-        ui.timer(0.1, self.refresh, once=True)
-
-    async def refresh(self):
-        models = list()
-        check = await run.io_bound(check_ready_for_load_model)
-
-        if check:
-            models = GetTTSModels.get_list()
-
         with ui.row().classes(
             "w-full justify-center items-center no-wrap"
         ) as self.root:
             self.sl = ui.select(
-                options=models,
+                options=list(),
                 label="TTS models:",
-                value=models[0] if models else None,
             ).classes("w-full text-base")
 
             with ui.column().classes("w-65 items-center"):
-                self.btn = ui.button("load model", on_click=self.click_btn).classes(
-                    "ml-auto"
-                )
+                self.btn = ui.button(
+                    "load model",
+                    on_click=self.click_btn,
+                ).classes("ml-auto")
+
                 self.spin = ui.spinner(size="lg")
                 self.spin.visible = False
 
+    async def refresh(self):
+        check = await run.io_bound(check_ready_for_load_model)
+
         self.root.set_visibility(check)
 
+        if not check:
+            self.sl.set_options(list())
+            self.sl.value = None
+            return
+
+        models = await run.io_bound(GetTTSModels.get_list)
+        self.sl.set_options(models)
+
+        self.sl.value = models[2] if models else None
+
     async def click_btn(self):
+        if not self.sl.value:
+            return
+
         id = int(self.sl.value.split("|")[0])
         self.btn.visible = False
         self.spin.visible = True
@@ -46,7 +55,6 @@ class SelectModels:
         try:
             await run.io_bound(lambda: load_model(id=id))
             await self.reload_components()
-            # await self._area.refresh()
         finally:
             self.spin.visible = False
             self.btn.visible = True
