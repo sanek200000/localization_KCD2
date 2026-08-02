@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Optional
+from time import perf_counter as pc
 
 from app.schemas.subs import SubDTO
 from loguru import logger
@@ -63,6 +64,9 @@ def convert_audio_with_remote_session(
     target_audio: Path,
     change_dir: Optional[str] = None,
 ):
+    total = pc()  # TODO: delete
+    logger.info("Remote conversion started")  # TODO: delete
+
     if change_dir:
         new_parts = [
             f"ru_voice_wav_{change_dir}" if part == "ru_voice_wav" else part
@@ -84,19 +88,32 @@ def convert_audio_with_remote_session(
         gen_text=target_text,
     )
     try:
+        generate_start = pc()  # TODO: delete
+        logger.info("tts_client.generate() started")  # TODO: delete
+
         audio_bytes = tts_client.generate(ref_audio=ref_audio, request=request)
+
+        logger.info(
+            f"tts_client.generate() finished {pc() - generate_start} sec"
+        )  # TODO: delete
     except Exception as ex:
         logger.error(f"{type(ex)}: {ex}")
         return ex
 
     if audio_bytes:
+        save_start = pc()  # TODO: delete
+
         target_audio.write_bytes(audio_bytes)
         logger.info(request.format_log(str(ref_audio), str(target_audio)))
+
+        logger.info(f"Save target_audio {pc() - save_start} sec")  # TODO: delete
     else:
         logger.warning(
             f"Empty response with request: {request.format_log(str(ref_audio), str(target_audio))}"
         )
         return
+
+    logger.info(f"TOTAL remote conversion {pc() - total} sec")  # TODO: delete
 
 
 def streaming_conversion(
@@ -104,10 +121,15 @@ def streaming_conversion(
     start_with: Optional[int] = None,
     change_dir: Optional[str] = None,
 ):
+    total_start = pc()  # TODO: delete
+    logger.info("========== START STREAMING CONVERSION ==========")  # TODO: delete
 
     data = get_all_subs_iter(batch_size=100)
 
     for i, sub in enumerate(data, start=1):
+        subtitle_start = pc()  # TODO: delete
+        logger.info(f"[{sub.id}] processing started")  # TODO: delete
+
         if limit and i >= limit:
             break
         if start_with and i < start_with:
@@ -121,6 +143,11 @@ def streaming_conversion(
             target_audio = Path(ogg.wav_ru_path)
 
             try:
+                audio_start = pc()  # TODO: delete
+                logger.info(
+                    f"[{sub.id}] convert_audio_with_remote_session() started"
+                )  # TODO: delete
+
                 convert_audio_with_remote_session(
                     sub_id=sub.id,
                     ref_text=ref_text,
@@ -129,9 +156,18 @@ def streaming_conversion(
                     target_audio=target_audio,
                     change_dir=change_dir,
                 )
+
+                logger.info(
+                    f"[{sub.id}] convert_audio_with_remote_session() finished {pc() - audio_start} sec"
+                )  # TODO: delete
             except Exception as ex:
                 logger.exception(ex)
                 continue
+
+        logger.info(f"[{sub.id}] TOTAL {pc() - subtitle_start} sec")  # TODO: delete
+    logger.info(
+        f"========== TOTAL STREAM {pc() - total_start} sec =========="
+    )  # TODO: delete
 
 
 # @inject_tts

@@ -22,7 +22,7 @@ class TTSpage:
 
         self.sm = SelectModels(self.reload)
 
-        self.pr = ProcessRunner("app.cli.streaming_conversion", "--limit", "10")
+        self.pr = ProcessRunner("app.cli.streaming_conversion")
 
         ui.timer(0.1, self.reload, once=True)
 

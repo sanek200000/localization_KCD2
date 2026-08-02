@@ -5,6 +5,7 @@ from pathlib import Path
 from app.api.subs import delete_sub, patch_sub
 from app.api.tts import convert_audio_with_remote_session
 from app.gui.components.audio_playlist import AudioPlaylist
+from app.gui.components.subs.editor import EditorBody
 from app.gui.services.subs import GuiSubsService
 from app.gui.layout import page_layout
 from app.schemas.oggs import OggDTO
@@ -15,7 +16,6 @@ from app.gui.state.subs import navigation_state as ns
 class SubsEditorPage:
     def __init__(self, sub_id: int) -> None:
         self.sub = GuiSubsService.get(sub_id)
-        self.playlist = AudioPlaylist()
 
         self.ids = ns.ids
         if self.sub.id in self.ids:
@@ -24,52 +24,6 @@ class SubsEditorPage:
             ns.restore(self.sub.id)
             self.ids = ns.ids
             self.current_index = self.ids.index(self.sub.id)
-
-    def save(self):
-        patch_sub(
-            sub_id=self.sub.id,
-            data=SubPatchDTO(
-                ru_sub=self.ru_sub.value,
-                ru_accent=self.ru_accent.value,
-            ),
-        )
-        ui.notify("Изменения сохранены", type="positive")
-
-    def delete(self):
-        id = self.sub.id
-
-        for ogg in self.sub.oggs:
-            self.delete_wav(ogg.wav_ru_path)
-
-        delete_sub(sub_id=id)
-        ui.notify("Запись удалена", type="positive")
-
-        self.ids.pop(id)
-        ui.navigate.to(f"/subs/{self.ids[self.current_index - 1]}")
-
-    def delete_wav(self, path: str):
-        file = Path(path)
-        if file.unlink(missing_ok=True):
-            ui.notify("File deleted", type="positive")
-        # ui.navigate.to(f"/subs/{self.sub.id}")
-
-    def voice_render(self, ref_audio: str, target_audio: str):
-        self.delete_wav(target_audio)
-        ui.notify(f"{ref_audio = }", type="positive")
-        ui.notify(f"{target_audio = }", type="positive")
-
-        try:
-            convert_audio_with_remote_session(
-                sub_id=self.sub.id,
-                ref_text=self.sub.en_sub,
-                target_text=self.sub.ru_accent,
-                ref_audio=Path(ref_audio),
-                target_audio=Path(target_audio),
-            )
-        except:
-            ui.notify("File not rendered", type="negative")
-        else:
-            ui.notify("File rendered", type="positive")
 
     def open_prev(self):
         if self.current_index is None:
@@ -103,89 +57,6 @@ class SubsEditorPage:
 
         ui.navigate.to(f"/subs/{ns.ids[0]}")
 
-    def create_voice_block(self, ogg: OggDTO):
-        with ui.card().classes("w-full"):
-            ui.label(ogg.name).classes("text-h6")
-            ui.separator()
-
-            ui.label("English")
-            if Path(ogg.wav_en_path).exists():
-                en_voice = ui.audio(ogg.wav_en_path).classes("w-full")
-                self.playlist.add(en_voice)
-
-            ui.label("Russian")
-            with ui.row().classes("w-full items-center"):
-                if Path(ogg.wav_ru_path).exists():
-                    ru_voice = ui.audio(ogg.wav_ru_path).classes("flex-grow")
-                    self.playlist.add(ru_voice)
-
-                    ui.button(
-                        "Delete WAV",
-                        on_click=lambda p=ogg.wav_ru_path: self.delete_wav(p),
-                    ).props("color=negative")
-
-                ui.button(
-                    "Render",
-                    on_click=lambda e, en=ogg.wav_en_path, ru=ogg.wav_ru_path: (
-                        self.voice_render(en, ru)
-                    ),
-                ).props("color=green")
-
-    def body(self):
-        with ui.dialog() as dialog, ui.card():
-            ui.label("Delete subtitle?")
-            with ui.row():
-                ui.button("NO", on_click=dialog.close)
-                ui.button(
-                    "YES",
-                    on_click=lambda: (
-                        dialog.close(),
-                        self.delete(),
-                    ),
-                ).props("color=negative")
-
-        with ui.row().classes("w-full items-center justify-between"):
-            ui.label(f"ID {self.sub.id}").classes("text-h5")
-            ui.separator()
-
-            with ui.row().classes("items-center no-wrap"):
-                ui.label("key:").classes("text-h6").style("min-width: 100px")
-                ui.label(self.sub.key).style("white-space: pre-wrap; font-size:16px")
-            ui.separator()
-
-            with ui.row().classes("items-center no-wrap"):
-                ui.label("English:").classes("text-h6").style("min-width: 100px")
-                ui.label(self.sub.en_sub).style("white-space: pre-wrap; font-size:16px")
-            ui.separator()
-
-            with ui.row().classes("w-full items-start"):
-                ui.label("Russian:").classes("text-h6").style("min-width: 100px")
-
-                with ui.column().classes("flex-grow gap-2"):
-                    self.ru_sub = (
-                        ui.textarea(value=self.sub.ru_sub)
-                        .props("rows=2")
-                        .classes("w-full text-base")
-                    )
-                    self.ru_accent = (
-                        ui.textarea(value=self.sub.ru_accent)
-                        .props("rows=2")
-                        .classes("w-full text-base")
-                    )
-            ui.separator()
-
-            ui.label("Voices").classes("text-h5")
-            for ogg in self.sub.oggs:
-                self.create_voice_block(ogg)
-
-            ui.separator()
-
-            with ui.row().classes("items-center"):
-                ui.button("💾 Save", on_click=self.save)
-                ui.button("🗑 Delete subtitle", on_click=dialog.open).props(
-                    "color=negative"
-                )
-
     def content(self):
         with ui.row().classes("w-full items-stretch no-wrap"):
             with ui.column().classes("justify-center"):
@@ -193,7 +64,11 @@ class SubsEditorPage:
                 prev_button.enabled = self.current_index > 0 or ns.page > 0
 
             with ui.column().classes("flex-grow"):
-                self.body()
+                eb = EditorBody(
+                    sub=self.sub,
+                    ids=self.ids,
+                    current_index=self.current_index,
+                )
 
             with ui.column().classes("justify-center"):
                 next_button = ui.button(">>", on_click=self.open_next).classes("h-full")
@@ -201,7 +76,7 @@ class SubsEditorPage:
                     self.current_index < len(self.ids) - 1 or ns.page < ns.pages - 1
                 )
 
-            ui.timer(0.1, self.playlist.start, once=True)
+            ui.timer(0.1, eb.playlist.start, once=True)
 
     @property
     def render_page(self):

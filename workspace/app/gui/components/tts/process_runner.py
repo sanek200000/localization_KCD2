@@ -9,13 +9,35 @@ from app.utils.tts import check_ready_tts_server
 
 
 class ProcessRunner:
-    def __init__(self, module: str, *args: str, max_lines: int = 1000) -> None:
+    def __init__(self, module: str, max_lines: int = 1000) -> None:
         self.module = module
-        self.args = args
 
         self.process: Optional[asyncio.subprocess.Process] = None
         self._render_task: Optional[asyncio.Task] = None
         self._running = False
+
+        with ui.row().classes("w-full no-wrap items-stretch"):
+            self.limit = ui.input(
+                label="limit",
+                placeholder="1 - \u221e",
+                validation={
+                    "Введите целое положительное число": lambda value: (
+                        value.isdigit() and int(value) > 0
+                    ),
+                },
+            ).classes("text-base w-full")
+
+            self.start_with = ui.input(
+                label="start with",
+                placeholder="1 - \u221e",
+                validation={
+                    "Введите целое положительное число": lambda value: (
+                        value.isdigit() and int(value) > 0
+                    ),
+                },
+            ).classes("text-base w-full")
+
+            self.change_dir = ui.input(label="cahnge dir").classes("text-base w-full")
 
         with ui.row().classes("w-full no-wrap items-start") as self.root:
             with ui.column().classes("items-stretch"):
@@ -34,6 +56,15 @@ class ProcessRunner:
         if self._running:
             return
 
+        # app.gui.components.tts.process_runner:__init__:15 - args: ('--limit', '10')
+        args = list()
+        if self.limit:
+            args.append(("--limit", self.limit.value))
+        if self.start_with:
+            args.append(("--start-with", self.start_with.value))
+        if self.change_dir:
+            args.append(("--change-dir", self.change_dir.value))
+
         self.log.clear()
 
         command = [
@@ -41,8 +72,10 @@ class ProcessRunner:
             "-u",
             "-m",
             self.module,
-            *self.args,
+            # *args,
         ]
+        logger.info(f"{args = }")
+        logger.info(f"Start command: {''.join(command)}")
 
         self._running = True
         self.process = await asyncio.create_subprocess_exec(

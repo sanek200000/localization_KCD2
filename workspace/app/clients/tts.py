@@ -1,6 +1,7 @@
 import requests
 from pathlib import Path
 from time import sleep
+from time import perf_counter as pc
 
 from loguru import logger
 from requests.exceptions import HTTPError
@@ -141,13 +142,22 @@ class TTSClient:
         return response.json()
 
     def generate(self, ref_audio: Path, request: TTSRequestDTO) -> bytes:
+        total = pc()  # TODO: delete
+        logger.info("generate() entered")  # TODO: delete
+
         poll_interval = 10
         max_connection_errors = 3
         connection_errors = 0
 
+        t = pc()  # TODO: delete
+        logger.info("POST /tts started")  # TODO: delete
+
         job_id = self._create_job(ref_audio, request)
         logger.info(f"Created TTS job: {job_id}")
 
+        logger.info(f"Post /tts {pc() - t} sec")  # TODO: delete
+
+        poll_start = pc()  # TODO: delete
         while True:
             try:
                 status = self._get_job_status(job_id)
@@ -185,14 +195,28 @@ class TTSClient:
             )
 
             if status.status is JobStatus.COMPLETED:
-                return self._download_reault(job_id)
+                t = pc()  # TODO: delete
+
+                result = self._download_reault(job_id)
+
+                logger.info(f"Download {pc() - t} sec")  # TODO: delete
+                logger.info(f"Polling {pc() - poll_start} sec")  # TODO: delete
+                logger.info(f"TOTAL generate {pc() - total} sec")  # TODO: delete
+
+                return result
 
             if status.status is JobStatus.FAILED:
                 detail = status.error or "TTS generation failed"
                 logger.error(detail)
+
+                logger.info(f"Polling {pc() - poll_start} sec")  # TODO: delete
+                logger.info(f"TOTAL generate {pc() - total} sec")  # TODO: delete
+
                 raise TTSServerError(detail)
 
             sleep(poll_interval)
+
+        logger.info(f"Polling {pc() - poll_start} sec")  # TODO: delete
 
     def _create_job(self, ref_audio: Path, request: TTSRequestDTO) -> str:
         try:
