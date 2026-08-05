@@ -11,6 +11,8 @@ from app.utils.tts import check_ready_tts_server
 class ProcessRunner:
     def __init__(self, module: str, max_lines: int = 1000) -> None:
         self.module = module
+        self._buffer: list[str] = list()
+        self._flush_task: Optional[asyncio.Task] = None
 
         self.process: Optional[asyncio.subprocess.Process] = None
         self._render_task: Optional[asyncio.Task] = None
@@ -46,24 +48,27 @@ class ProcessRunner:
                 self.btn_stop = ui.button("stop", on_click=self.stop, color="red")
                 self.btn_stop.disable()
 
-            self.log = ui.log(max_lines=max_lines).classes("w-full h-200")
+            self.log = ui.log(max_lines=max_lines).classes("w-full h-180")
 
     async def refresh(self):
         check = await run.io_bound(check_ready_tts_server)
         self.root.set_visibility(check)
 
+    def _build_args(self):
+        args = list()
+
+        if self.limit.value and self.limit.validate():
+            args.extend(["--limit", self.limit.value])
+        if self.start_with.value and self.start_with.validate():
+            args.extend(["--start-with", self.start_with.value])
+        if self.change_dir.value:
+            args.extend(["--change-dir", self.change_dir.value])
+
+        return args
+
     async def start(self):
         if self._running:
             return
-
-        # app.gui.components.tts.process_runner:__init__:15 - args: ('--limit', '10')
-        args = list()
-        if self.limit:
-            args.append(("--limit", self.limit.value))
-        if self.start_with:
-            args.append(("--start-with", self.start_with.value))
-        if self.change_dir:
-            args.append(("--change-dir", self.change_dir.value))
 
         self.log.clear()
 
@@ -72,9 +77,8 @@ class ProcessRunner:
             "-u",
             "-m",
             self.module,
-            # *args,
+            *self._build_args(),
         ]
-        logger.info(f"{args = }")
         logger.info(f"Start command: {''.join(command)}")
 
         self._running = True
@@ -87,7 +91,9 @@ class ProcessRunner:
         self.btn_start.disable()
         self.btn_stop.enable()
 
+        self._buffer.clear()
         self._render_task = asyncio.create_task(self._read_stdout())
+        self._flush_task = asyncio.create_task(self._flush_log())
 
     async def stop(self):
         if not self.process:
@@ -103,6 +109,8 @@ class ProcessRunner:
 
         if self._render_task:
             await self._render_task
+        if self._flush_task:
+            await self._flush_task
 
         self._running = False
         self.process = None
@@ -114,7 +122,7 @@ class ProcessRunner:
         assert self.process
         assert self.process.stdout
 
-        buffer: list[str] = list()
+        # buffer: list[str] = list()
 
         while True:
             line = await self.process.stdout.readline()
@@ -122,19 +130,29 @@ class ProcessRunner:
             if not line:
                 break
 
-            buffer.append(line.decode(encoding="utf-8", errors="replace").rstrip())
+            self._buffer.append(
+                line.decode(encoding="utf-8", errors="replace").rstrip()
+            )
 
-            if len(buffer) >= 20:
-                self.log.push("\n".join(buffer))
-                buffer.clear()
-
-        if buffer:
-            self.log.push("\n".join(buffer))
+        #     if len(buffer) >= 20:
+        #         self.log.push("\n".join(buffer))
+        #         buffer.clear()
+        #
+        # if buffer:
+        #     self.log.push("\n".join(buffer))
 
         await self.process.wait()
 
         self._running = False
         self.process = None
+
+    async def _flush_log(self):
+        while self._running or self._buffer:
+            if self._buffer:
+                self.log.push("\n".join(self._buffer))
+                self._buffer.clear()
+
+            await asyncio.sleep(1)
 
         self.btn_start.enable()
         self.btn_stop.disable()

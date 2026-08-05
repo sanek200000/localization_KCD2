@@ -145,8 +145,8 @@ class TTSClient:
         total = pc()  # TODO: delete
         logger.info("generate() entered")  # TODO: delete
 
-        poll_interval = 10
-        max_connection_errors = 3
+        poll_interval = 1
+        max_connection_errors = 10
         connection_errors = 0
 
         t = pc()  # TODO: delete
