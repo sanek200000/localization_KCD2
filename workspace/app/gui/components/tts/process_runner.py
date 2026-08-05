@@ -79,7 +79,7 @@ class ProcessRunner:
             self.module,
             *self._build_args(),
         ]
-        logger.info(f"Start command: {''.join(command)}")
+        logger.info(f"Start command: {' '.join(command)}")
 
         self._running = True
         self.process = await asyncio.create_subprocess_exec(

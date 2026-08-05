@@ -6,7 +6,7 @@ from app.schemas.subs import SubDTO
 from loguru import logger
 
 from app.api.dependencies import inject_tts
-from app.api.subs import get_all_subs_iter
+from app.api.subs import get_all_subs_iter, get_all_with_limit
 from app.clients.tts import TTSClient
 from app.schemas.tts import TTSRequestDTO
 
@@ -124,17 +124,21 @@ def streaming_conversion(
     total_start = pc()  # TODO: delete
     logger.info("========== START STREAMING CONVERSION ==========")  # TODO: delete
 
-    data = get_all_subs_iter(batch_size=100)
+    if start_with and limit:
+        data = get_all_with_limit(offset=start_with, limit=limit)
+    else:
+        data = get_all_subs_iter(batch_size=100)
 
     for i, sub in enumerate(data, start=1):
-        subtitle_start = pc()  # TODO: delete
-        logger.info(f"[{sub.id}] processing started")  # TODO: delete
-
         if limit and i >= limit:
             break
-        if start_with and i < start_with:
-            continue
+        # if start_with and i < start_with:
+        # continue
+
         logger.info(f"Sub #{i}")
+
+        subtitle_start = pc()  # TODO: delete
+        logger.info(f"[{sub.id}] processing started")  # TODO: delete
 
         ref_text = sub.en_sub
         target_text = sub.ru_accent
