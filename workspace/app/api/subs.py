@@ -1,3 +1,5 @@
+from typing import Optional
+
 from app.api.dependencies import inject_db
 from app.schemas.subs import SubAddDTO, SubPatchDTO
 from app.utils.db_manager import DBManager
@@ -19,7 +21,7 @@ def get_subs_count(db: DBManager, search: str = ""):
 
 
 @inject_db
-def get_all_subs_iter(db: DBManager, batch_size: int):
+def get_all_subs_iter(db: DBManager, batch_size: int, offset: Optional[int] = None):
     """
     Возвращает итератор по всем субтитрам с загруженными OGG-связями.
 
@@ -40,7 +42,7 @@ def get_all_subs_iter(db: DBManager, batch_size: int):
         - Использует `yield_per` на уровне SQLAlchemy.
         - Подходит для ETL-процессов и фоновой генерации аудио.
     """
-    return db.subs.iter_subs_with_oggs(batch_size=batch_size)
+    return db.subs.iter_subs_with_oggs(batch_size=batch_size, offset=offset)
 
 
 @inject_db

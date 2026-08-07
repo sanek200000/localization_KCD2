@@ -32,7 +32,7 @@ class BaseRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def get_iter(self, batch_size: int, options=tuple()) -> Iterator[Type[BaseModel]]:
+    def get_iter(self, batch_size: int, options=tuple(), offset: Optional[int]=None) -> Iterator[Type[BaseModel]]:
         """
         Возвращает итератор по объектам репозитория с пакетной загрузкой.
 
@@ -64,7 +64,7 @@ class BaseRepository:
         """
 
         stmt = (
-            select(self.model).options(*options).execution_options(yield_per=batch_size)
+            select(self.model).options(*options).offset(offset).execution_options(yield_per=batch_size)
         )
         result = self.session.scalars(stmt)
 

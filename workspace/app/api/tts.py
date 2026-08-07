@@ -126,6 +126,8 @@ def streaming_conversion(
 
     if start_with and limit:
         data = get_all_with_limit(offset=start_with, limit=limit)
+    elif start_with:
+        data = get_all_subs_iter(batch_size=100, offset=start_with)
     else:
         data = get_all_subs_iter(batch_size=100)
 

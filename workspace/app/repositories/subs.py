@@ -70,7 +70,11 @@ class SubsRepository(BaseRepository):
             options=(selectinload(self.model.oggs),),
         )
 
-    def iter_subs_with_oggs(self, batch_size: int) -> Iterator[Type[BaseModel]]:
+    def iter_subs_with_oggs(
+        self,
+        batch_size: int,
+        offset: Optional[int] = None,
+    ) -> Iterator[Type[BaseModel]]:
         """
         Итеративно получает субтитры с предзагруженными OGG-записями
         с использованием пакетной загрузки.
@@ -94,6 +98,7 @@ class SubsRepository(BaseRepository):
         return self.get_iter(
             options=(selectinload(self.model.oggs),),
             batch_size=batch_size,
+            offset=offset,
         )
 
     def get_page_with_oggs(
